@@ -11,6 +11,8 @@
 
 본 프로젝트는 AI 반도체 스타트업의 기술적 복잡성과 시장 변동성을 정밀하게 분석하기 위해 설계된 **LangGraph 기반 Multi-Agent 운영 체제**입니다. 14개의 전문 에이전트가 협업하여 데이터 수집부터 최종 투자 추천 보고서 작성까지의 전 과정을 자동화하며, 주관적인 판단을 배제한 **DD-Worthiness Score**를 통해 투자 의사결정을 지원합니다.
 
+최종 Output 보고서: `outputs/final_ai_semiconductor_report.pdf`
+
 ---
 
 ## 2. Overview
