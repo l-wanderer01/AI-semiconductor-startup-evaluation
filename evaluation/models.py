@@ -541,6 +541,7 @@ class EvaluatorConfiguration(RecordModel):
     configuration_sha256: Sha256
     cache_enabled: bool = False
     max_retries: Count = 0
+    custom_factual_configuration: dict[str, JsonValue] | None = None
 
 
 class EvaluationManifest(TimingRecord):

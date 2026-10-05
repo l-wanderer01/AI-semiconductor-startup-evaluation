@@ -24,6 +24,9 @@ def main():
     evaluate.add_argument('--dataset-version')
     evaluate.add_argument('--reference-sha256')
     evaluate.add_argument('--model', default='gpt-4.1-mini')
+    evaluate.add_argument('--custom-factual', action='store_true', help='#23 독립 기준 3상태 판정 및 핵심 오류 검사')
+    evaluate.add_argument('--reference-dataset', type=Path, help='--custom-factual에 사용할 #22와 동일한 검토 완료 데이터셋')
+    evaluate.add_argument('--judge-model', default='gpt-4.1-mini')
     evaluate.add_argument('--previous-evaluation-id')
     evaluate.add_argument('--resume-reason')
     args = parser.parse_args()
@@ -33,6 +36,10 @@ def main():
         print(json.dumps({'valid': not errors, 'errors': errors}, ensure_ascii=False, indent=2))
         raise SystemExit(1 if errors else 0)
     from .ragas_adapter import RagasAdapter, evaluate_inputs
+    if args.custom_factual and (not args.stage_package or not args.reference_dataset):
+        parser.error('--custom-factual에는 --stage-package와 --reference-dataset이 필요합니다.')
+    if args.reference_dataset and not args.custom_factual:
+        parser.error('--reference-dataset은 --custom-factual과 함께 사용합니다.')
     manifest = RunManifest.model_validate_json((directory / 'run.json').read_text())
     preparation = None
     stage_package = None
@@ -63,6 +70,10 @@ def main():
             parser.error('--samples에는 --dataset-version과 --reference-sha256이 필요합니다.')
         samples = [RagasSampleInput.model_validate_json(line)
                    for line in args.samples.read_text().splitlines() if line.strip()]
+    factual_judge = None
+    if args.custom_factual:
+        from .factual import LangChainFactualJudge
+        factual_judge = LangChainFactualJudge.openai(args.judge_model)
     result = asyncio.run(evaluate_inputs(
         EvaluationStorage(directory.parent), directory.name, samples, RagasAdapter.openai(args.model),
         dataset_version=args.dataset_version, reference_sha256=args.reference_sha256,
@@ -70,6 +81,7 @@ def main():
         previous_evaluation_id=args.previous_evaluation_id, resume_reason=args.resume_reason,
         preparation_metadata=preparation,
         stage_package=stage_package,
+        factual_judge=factual_judge, reference_dataset_directory=args.reference_dataset,
     ))
     print(result)
 
