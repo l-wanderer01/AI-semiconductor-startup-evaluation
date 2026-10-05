@@ -24,7 +24,8 @@ reason에 각 규칙 충족/실패 이유를 한국어로 명시하라.'''
 
 class LangChainCoverageJudge:
     def __init__(self, model, *, model_settings):
-        self.chain = model.with_structured_output(ItemProposal, include_raw=True)
+        from .runtime import custom_runnable
+        self.chain = custom_runnable(model, ItemProposal, model_settings, 'required_information')
         self.model_settings = model_settings
 
     @classmethod

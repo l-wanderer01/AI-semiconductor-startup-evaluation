@@ -1138,6 +1138,12 @@ class UsageRecord(RecordModel):
     provider: Identifier
     model: str | None = None
     attempt: Annotated[int, Field(strict=True, ge=1)]
+    metric_name: str | None = None
+    status: Literal["succeeded", "failed", "unknown"] = "unknown"
+    started_at: datetime | None = None
+    ended_at: datetime | None = None
+    retry_count: Count = 0
+    retry_visibility: Literal["observed", "provider_internal_unknown"] = "provider_internal_unknown"
     input_tokens: Count | None = None
     output_tokens: Count | None = None
     cached_input_tokens: Count | None = None
@@ -1164,6 +1170,12 @@ class UsageRecord(RecordModel):
 
 class RuntimeMetrics(RecordModel):
     purpose: Literal["generation", "ragas_evaluation", "custom_evaluation"]
+    started_at: datetime | None = None
+    ended_at: datetime | None = None
+    completed_at: datetime | None = None
+    status: Literal["succeeded", "failed", "running"] = "running"
+    boundary: str | None = None
+    delivery_gate_delay_seconds: NonNegative | None = None
     duration_seconds: NonNegative | None = None
     cost: NonNegative | None = None
     currency: str | None = None

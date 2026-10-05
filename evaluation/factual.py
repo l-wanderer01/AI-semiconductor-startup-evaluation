@@ -33,7 +33,8 @@ reason은 한국어로 비교 조건과 원문에 근거해 설명하라. 세 �
 
 class LangChainFactualJudge:
     def __init__(self, model, *, model_settings):
-        self.chain = model.with_structured_output(JudgmentProposal, include_raw=True)
+        from .runtime import custom_runnable
+        self.chain = custom_runnable(model, JudgmentProposal, model_settings, 'custom_factual')
         self.model_settings = model_settings
 
     @classmethod

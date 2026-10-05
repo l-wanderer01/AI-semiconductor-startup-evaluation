@@ -79,11 +79,14 @@ def company_scope(company):
 class RunRecorder:
     def __init__(self, *, root: Path, execution_path: str, inputs, settings: dict,
                  requested_formats: list[str], repository: Path, role='baseline'):
+        from .runtime import UsageCollector
         self.start_clock = time.monotonic()
         self.started_at = now()
         self.storage = EvaluationStorage(root)
         self.directory = self.storage.create_run(identifier('run'))
         self.run_id = self.directory.name
+        self.usage = UsageCollector(self.run_id, 'generation')
+        self.usage.clock, self.usage.started_at = self.start_clock, self.started_at
         self.records = []
         self.inflight = {}
         self.evidence = {}
@@ -356,9 +359,17 @@ class RunRecorder:
         states = {r.cache_hit for r in self.retrievals if r.cache_hit is not None}
         return 'mixed' if len(states) == 2 else ('warm' if states == {True} else ('cold' if states == {False} else 'unknown'))
 
+    def generation_complete(self, exc=None):
+        success = (exc is None and set(self.manifest.requested_formats).issubset(
+            {a.format for a in self.artifacts if a.status == 'saved'})
+            and all(a.status == 'saved' for a in self.artifacts if a.required))
+        self.usage.stop(success, 'request accepted -> requested report formats and state saved')
+
     def finish(self, result=None, exc=None):
         if self.finished:
             return
+        self.generation_complete(exc)
+        custom_clock, custom_start = time.monotonic(), now()
         from .workflow import build_workflow, check_workflow
         from .validation import validate_run
         saved = {a.format for a in self.artifacts}
@@ -390,8 +401,16 @@ class RunRecorder:
         self.storage.write_json(self.directory, 'additional_research.json', self.research)
         from .models import CheckCounts
         baseline_counts = rule_summary['policies'][f'{self.path}-baseline-v1']['counts']
+        from .runtime import UsageCollector
+        custom = UsageCollector(self.run_id, 'custom_evaluation', prices=self.usage.prices)
+        custom.clock, custom.started_at = custom_clock, custom_start
+        custom.stop(not bool(exc or any(c.status not in {'pass', 'not_applicable'} for c in checks)),
+                    'post-delivery workflow and rule checks')
+        custom.save(self.storage, self.directory, 'custom_runtime.json')
         self.storage.write_json(self.directory, 'metrics.json', MetricsRecord(
-            run_id=self.run_id, scope='run', rule_counts=CheckCounts.model_validate(baseline_counts)))
+            run_id=self.run_id, scope='run', rule_counts=CheckCounts.model_validate(baseline_counts),
+            generation_runtime=self.usage.summary(), custom_runtime=custom.summary()))
+        self.usage.save(self.storage, self.directory, 'generation_runtime.json')
         self.event('failure' if exc else 'end', error=error_record(exc) if exc else None,
                    details={'scope': 'run'})
         values = self.manifest.model_dump(mode='json')
@@ -514,7 +533,11 @@ class ObservedRunnable:
                     f'{getattr(item, "type", "message")}: {getattr(item, "content", "")}' for item in inputs)
                 recorder.delivered(text, span['record'])
             try:
-                result = self.runnable.invoke(inputs, *args, **kwargs)
+                if self.kind == 'llm':
+                    from .runtime import invoke_usage
+                    result = invoke_usage(self.runnable, inputs, args, kwargs, recorder.usage, self.model)
+                else:
+                    result = self.runnable.invoke(inputs, *args, **kwargs)
             except Exception as exc:
                 if self.kind == 'retrieval':
                     recorder.retrieval(str(inputs), [], span['record'], error=error_record(exc, span['record'].invocation_id))

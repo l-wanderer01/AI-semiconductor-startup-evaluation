@@ -37,7 +37,8 @@ same_entity/same_time/same_conditions는 실제 비교 가능성이다. 숫자 �
 
 class LangChainSupportJudge:
     def __init__(self, model, *, model_settings):
-        self.chain = model.with_structured_output(SupportProposal, include_raw=True)
+        from .runtime import custom_runnable
+        self.chain = custom_runnable(model, SupportProposal, model_settings, 'custom_grounding')
         self.model_settings = model_settings
 
     @classmethod

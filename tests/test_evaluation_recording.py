@@ -191,6 +191,9 @@ class EntryPointTests(unittest.TestCase):
                 first = next(Path('evaluation_runs').iterdir())
                 manifest = RunManifest.model_validate_json((first / 'run.json').read_text())
                 self.assertEqual(manifest.generation_status, 'succeeded')
+                runtime = json.loads((first / 'generation_runtime.json').read_text())
+                self.assertEqual(runtime['status'], 'succeeded')
+                self.assertIsNotNone(runtime['completed_at'])
                 self.assertEqual({a.format for a in manifest.artifacts if a.status == 'saved'}, {'md', 'pdf', 'json'})
                 self.assertEqual(validate_run(first), [])
                 with patch.object(cli, 'run_pipeline', return_value=fixture), \
@@ -201,6 +204,9 @@ class EntryPointTests(unittest.TestCase):
                 second = next(p for p in Path('evaluation_runs').iterdir() if p != first)
                 failed = RunManifest.model_validate_json((second / 'run.json').read_text())
                 self.assertEqual(failed.generation_status, 'failed')
+                runtime = json.loads((second / 'generation_runtime.json').read_text())
+                self.assertEqual(runtime['status'], 'failed')
+                self.assertIsNone(runtime['completed_at'])
                 self.assertTrue((second / 'report_original.md').is_file())
                 self.assertTrue(any(a.format == 'pdf' and a.status == 'error' for a in failed.artifacts))
             finally:

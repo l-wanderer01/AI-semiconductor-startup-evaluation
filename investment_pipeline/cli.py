@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from pathlib import Path
+import time
+from datetime import datetime, timezone
 import json
 
 import typer
@@ -27,9 +29,10 @@ def main(
     llm_enrichment: bool = typer.Option(settings.enable_llm_enrichment),
     polish_korean: bool = typer.Option(False),
 ) -> None:
+    request_clock, request_time = time.monotonic(), datetime.now(timezone.utc)
     recorder = RunRecorder(
         root=Path('evaluation_runs'), execution_path='investment_pipeline',
-        inputs={'domain': domain, 'input': input.read_text(encoding='utf-8')},
+        inputs={'domain': domain, 'input_path': str(input)},
         settings={'llm_enabled': llm_enrichment, 'live_research_enabled': live_research,
                   'model': settings.openai_model, 'temperature': settings.temperature,
                   'selective_dd_threshold': settings.selective_dd_threshold,
@@ -39,8 +42,11 @@ def main(
                   'polish_korean_option': polish_korean, 'cache_state': 'unknown'},
         requested_formats=['md', 'pdf', 'json'], repository=Path(__file__).resolve().parents[1],
     )
+    recorder.usage.clock, recorder.usage.started_at = request_clock, request_time
     try:
         with recorder.activate():
+            recorder.manifest.input_snapshot = recorder.snapshot('request_snapshot.json',
+                {'domain': domain, 'input': input.read_text(encoding='utf-8')})
             settings.enable_live_research = live_research
             settings.enable_llm_enrichment = llm_enrichment
             companies = load_companies(input)
@@ -73,6 +79,7 @@ def main(
                 recorder.artifact(state_output, 'state_original.json', 'json')
                 span['output'] = {'artifacts': [a.model_dump(mode='json') for a in recorder.artifacts]}
 
+            recorder.generation_complete()
             console.print(f"Report written to {output}")
             console.print(f"State snapshot written to {state_output}")
             console.print(f"Branch selected: {result.branch}")
