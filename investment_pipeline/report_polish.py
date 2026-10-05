@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from evaluation.recording import traced
+
 from .llm import llm_client
 
 
@@ -23,6 +25,7 @@ FULL_REPORT_TRANSLATION_PROMPT = """
 """
 
 
+@traced('polish_report_to_korean')
 def polish_report_to_korean(markdown: str) -> str:
     if not llm_client.available:
         return markdown

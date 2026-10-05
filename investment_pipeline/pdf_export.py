@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from evaluation.recording import traced
+
 from html import escape
 from pathlib import Path
 
@@ -26,6 +28,7 @@ def _register_korean_font() -> str:
     return "Helvetica"
 
 
+@traced('export_markdown_to_pdf')
 def export_markdown_to_pdf(markdown_path: Path, pdf_path: Path) -> None:
     font_name = _register_korean_font()
     styles = getSampleStyleSheet()

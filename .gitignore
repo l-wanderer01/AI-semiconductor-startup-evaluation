@@ -61,3 +61,7 @@ bin/
 *.log
 tmp/
 temp/
+
+# Evaluation runtime and immutable run artifacts
+.venv-evaluation/
+evaluation_runs/

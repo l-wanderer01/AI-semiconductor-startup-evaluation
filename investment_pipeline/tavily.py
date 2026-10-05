@@ -6,6 +6,8 @@ from typing import List
 
 import requests
 
+from evaluation.integration import observed_search
+
 from .config import settings
 from .models import ResearchEvidence
 
@@ -32,6 +34,7 @@ class TavilySearchClient:
     def available(self) -> bool:
         return bool(self.api_key and settings.enable_live_research)
 
+    @observed_search(web=True)
     def search(self, query: str, *, category: str, days: int = 3650) -> List[ResearchEvidence]:
         if not self.available:
             return []
