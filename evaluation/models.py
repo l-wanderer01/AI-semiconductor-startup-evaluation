@@ -773,7 +773,7 @@ class RagasSampleInput(RecordModel):
     response: str | None = None
     reference: str | None = None
     retrieved_contexts: list[str] | None = None
-    context_kind: Literal["delivered", "retrieved", "none"]
+    context_kind: Literal["delivered", "received_input", "retrieved", "none"]
     context_ids: list[Identifier] = Field(default_factory=list)
     evidence_ids: list[Identifier] = Field(default_factory=list)
     reference_ids: list[Identifier] = Field(default_factory=list)
@@ -789,6 +789,8 @@ class RagasSampleInput(RecordModel):
             RagasMetricName.FACTUAL_PRECISION: "none",
             RagasMetricName.FACTUAL_RECALL: "none",
         }
+        if self.metric_name == RagasMetricName.FAITHFULNESS and self.context_kind == 'received_input':
+            return self
         if self.context_kind != expected[self.metric_name]:
             raise ValueError("metric에 맞는 문맥 종류를 사용해야 합니다.")
         return self
