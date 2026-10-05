@@ -5,6 +5,8 @@ from typing import Dict, List
 
 from langgraph.graph import END, START, StateGraph
 
+from evaluation.recording import traced, company_scope
+
 from .config import settings
 from .models import CompanyProfile, InvestmentDecision, PipelineResult, RankingSelection
 from .reporting import render_hold_report, render_top_report
@@ -23,6 +25,7 @@ from .states import CompanyAnalysisState, PipelineState
 def _company_graph():
     graph = StateGraph(CompanyAnalysisState)
 
+    @traced('investment_supervisor', kind='node')
     def investment_supervisor_node(state: CompanyAnalysisState) -> Dict[str, object]:
         route = "decision"
         if "company_research_state" not in state:
@@ -62,10 +65,12 @@ def _company_graph():
 
         return {"supervisor_route_state": route}
 
+    @traced('company_research', kind='node')
     def company_research_node(state: CompanyAnalysisState) -> Dict[str, object]:
         company = state["selected_company_context_state"]
         return {"company_research_state": build_company_research(company)}
 
+    @traced('technical_eval', kind='node')
     def technical_eval_node(state: CompanyAnalysisState) -> Dict[str, object]:
         company = state["selected_company_context_state"]
         research = state["company_research_state"]
@@ -88,11 +93,13 @@ def _company_graph():
             "technical_recheck_completed_state": bool(additional_notes),
         }
 
+    @traced('technical_additional_research', kind='node')
     def technical_additional_research_node(state: CompanyAnalysisState) -> Dict[str, object]:
         tech = state["technical_evaluation_state"]
         notes = [] if tech.score >= 4 else ["특허, 벤치마크, 프로토타입 검증 자료를 추가 확보한다."]
         return {"technical_additional_research_state": notes}
 
+    @traced('market_eval', kind='node')
     def market_eval_node(state: CompanyAnalysisState) -> Dict[str, object]:
         company = state["selected_company_context_state"]
         research = state["company_research_state"]
@@ -113,11 +120,13 @@ def _company_graph():
             "market_recheck_completed_state": bool(additional_notes),
         }
 
+    @traced('market_additional_research', kind='node')
     def market_additional_research_node(state: CompanyAnalysisState) -> Dict[str, object]:
         market = state["market_evaluation_state"]
         notes = [] if market.score >= 4 else ["고객 세그먼트, PoC 전환율, 파운드리 파트너 현황을 추가 조사한다."]
         return {"market_additional_research_state": notes}
 
+    @traced('team_eval', kind='node')
     def team_eval_node(state: CompanyAnalysisState) -> Dict[str, object]:
         company = state["selected_company_context_state"]
         research = state["company_research_state"]
@@ -133,6 +142,7 @@ def _company_graph():
             )
         }
 
+    @traced('risk_eval', kind='node')
     def risk_eval_node(state: CompanyAnalysisState) -> Dict[str, object]:
         company = state["selected_company_context_state"]
         research = state["company_research_state"]
@@ -149,6 +159,7 @@ def _company_graph():
             )
         }
 
+    @traced('competition_eval', kind='node')
     def competition_eval_node(state: CompanyAnalysisState) -> Dict[str, object]:
         company = state["selected_company_context_state"]
         research = state["company_research_state"]
@@ -164,6 +175,7 @@ def _company_graph():
             )
         }
 
+    @traced('decision', kind='node')
     def decision_node(state: CompanyAnalysisState) -> Dict[str, object]:
         company = state["selected_company_context_state"]
         research = state["company_research_state"]
@@ -216,6 +228,7 @@ def _company_graph():
             )
         }
 
+    @traced('company_route')
     def company_route(state: CompanyAnalysisState) -> str:
         return state["supervisor_route_state"]
 
@@ -265,6 +278,7 @@ COMPANY_GRAPH = _company_graph()
 def build_pipeline():
     graph = StateGraph(PipelineState)
 
+    @traced('list_candidates', kind='node')
     def list_candidates_node(_: PipelineState) -> Dict[str, object]:
         return {
             "pipeline_meta_state": {
@@ -274,25 +288,29 @@ def build_pipeline():
             }
         }
 
+    @traced('market_research', kind='node')
     def market_research_node(state: PipelineState) -> Dict[str, object]:
         return {
             "domain_market_research_state": build_market_research(state["domain_definition_state"])
         }
 
+    @traced('analyze_companies', kind='node')
     def analyze_companies_node(state: PipelineState) -> Dict[str, object]:
         decisions: List[InvestmentDecision] = []
         market = state["domain_market_research_state"]
         for company in state["candidate_company_pool_state"]:
-            enriched_company = enrich_company_profile(company)
-            result = COMPANY_GRAPH.invoke(
-                {
-                    "selected_company_context_state": enriched_company,
-                    "domain_market_research_state": market,
-                }
-            )
-            decisions.append(result["investment_decision_state"])
+            with company_scope(company.name):
+                enriched_company = enrich_company_profile(company)
+                result = COMPANY_GRAPH.invoke(
+                    {
+                        "selected_company_context_state": enriched_company,
+                        "domain_market_research_state": market,
+                    }
+                )
+                decisions.append(result["investment_decision_state"])
         return {"investment_decision_state": decisions}
 
+    @traced('ranking', kind='node')
     def ranking_node(state: PipelineState) -> Dict[str, object]:
         decisions = sorted(
             state["investment_decision_state"], key=lambda item: item.final_score, reverse=True
@@ -311,9 +329,11 @@ def build_pipeline():
         )
         return {"ranking_selection_state": ranking}
 
+    @traced('branch_selector')
     def branch_selector(state: PipelineState) -> str:
         return state["ranking_selection_state"].branch
 
+    @traced('top_report', kind='node')
     def top_report_node(state: PipelineState) -> Dict[str, object]:
         report = render_top_report(
             state["ranking_selection_state"],
@@ -322,6 +342,7 @@ def build_pipeline():
         )
         return {"final_report_markdown": report}
 
+    @traced('hold_report', kind='node')
     def hold_report_node(state: PipelineState) -> Dict[str, object]:
         report = render_hold_report(
             state["ranking_selection_state"],
@@ -354,6 +375,7 @@ def build_pipeline():
 PIPELINE_GRAPH = build_pipeline()
 
 
+@traced('run_pipeline')
 def run_pipeline(domain: str, companies: List[CompanyProfile]) -> PipelineResult:
     result = PIPELINE_GRAPH.invoke(
         {

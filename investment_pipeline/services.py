@@ -5,6 +5,8 @@ import re
 from pathlib import Path
 from typing import Dict, List
 
+from evaluation.recording import traced
+
 from .config import settings
 from .llm import llm_client
 from .models import (
@@ -64,6 +66,7 @@ _CATEGORY_FALLBACKS = {
 }
 
 
+@traced('get_knowledge_base')
 def get_knowledge_base() -> DesignDocumentKnowledgeBase | None:
     global _knowledge_base
     if _knowledge_base is not None:
@@ -75,6 +78,7 @@ def get_knowledge_base() -> DesignDocumentKnowledgeBase | None:
     return _knowledge_base
 
 
+@traced('get_company_evidence_kb')
 def get_company_evidence_kb(company: CompanyProfile):
     cache_key = f"{company.name}:{company.stage}"
     if cache_key in _company_evidence_kb_cache:
@@ -85,6 +89,7 @@ def get_company_evidence_kb(company: CompanyProfile):
     return kb
 
 
+@traced('get_market_evidence_kb')
 def get_market_evidence_kb(domain: str):
     if domain in _market_evidence_kb_cache:
         return _market_evidence_kb_cache[domain]
@@ -301,6 +306,7 @@ def _score_from_evidence(evidence: List[ResearchEvidence], fallback: int) -> int
     return max(2, fallback - 1)
 
 
+@traced('_search_company')
 def _search_company(company: CompanyProfile) -> CompanyWebResearch:
     cache_key = f"{company.name}:{company.stage}"
     if cache_key in _company_research_cache:
@@ -345,6 +351,7 @@ def _search_company(company: CompanyProfile) -> CompanyWebResearch:
     return researched
 
 
+@traced('_search_market')
 def _search_market(domain: str) -> MarketWebResearch:
     if domain in _market_research_cache:
         return _market_research_cache[domain]
@@ -364,6 +371,7 @@ def _search_market(domain: str) -> MarketWebResearch:
     return researched
 
 
+@traced('build_market_research')
 def build_market_research(domain: str) -> MarketResearch:
     kb = get_knowledge_base()
     market_live = _search_market(domain)
@@ -419,6 +427,7 @@ def build_market_research(domain: str) -> MarketResearch:
     )
 
 
+@traced('build_company_research')
 def build_company_research(company: CompanyProfile) -> CompanyResearch:
     kb = get_knowledge_base()
     company_live = _search_company(company)
@@ -519,6 +528,7 @@ def build_company_research(company: CompanyProfile) -> CompanyResearch:
     )
 
 
+@traced('make_evaluation')
 def make_evaluation(
     *,
     category: str,
@@ -585,6 +595,7 @@ def collect_references(company: CompanyProfile, market: MarketResearch) -> List[
     return deduped
 
 
+@traced('enrich_company_profile')
 def enrich_company_profile(company: CompanyProfile) -> CompanyProfile:
     web_research = _search_company(company)
     by_category: Dict[str, List[ResearchEvidence]] = {}

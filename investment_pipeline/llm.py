@@ -4,6 +4,9 @@ from typing import Optional, Type, TypeVar
 
 from pydantic import BaseModel
 
+from evaluation.recording import ObservedRunnable, traced
+from evaluation.models import ModelSettings
+
 from .config import settings
 
 T = TypeVar("T", bound=BaseModel)
@@ -32,6 +35,9 @@ class LLMClient:
                 timeout=20,
                 max_retries=0,
             )
+            self._model = ObservedRunnable(self._model, kind='llm', name='pipeline_llm',
+                                           model=ModelSettings(provider='openai', model=settings.openai_model,
+                                                               temperature=settings.temperature, max_retries=0))
         except Exception:
             self._model = None
 
@@ -40,6 +46,7 @@ class LLMClient:
         self._ensure_model()
         return self._model is not None
 
+    @traced('invoke_structured')
     def invoke_structured(self, prompt: str, schema: Type[T]) -> Optional[T]:
         self._ensure_model()
         if not self._model:
@@ -50,6 +57,7 @@ class LLMClient:
         except Exception:
             return None
 
+    @traced('invoke_text')
     def invoke_text(self, prompt: str) -> Optional[str]:
         self._ensure_model()
         if not self._model:

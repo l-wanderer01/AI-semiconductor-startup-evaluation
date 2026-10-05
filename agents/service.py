@@ -16,6 +16,9 @@ from langchain_openai import ChatOpenAI
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langgraph.graph import END, StateGraph
 
+from evaluation.integration import service_initialization, service_execution
+from evaluation.recording import CURRENT, company_scope, traced
+
 from .models import (
     AgentEvaluation,
     CompanyEvaluation,
@@ -26,6 +29,7 @@ from .models import (
 
 
 class InvestmentAnalysisService:
+    @service_initialization
     def __init__(self, base_dir: Path, config: ServiceConfig | None = None):
         self.base_dir = base_dir.resolve()
         self.config = config or ServiceConfig()
@@ -88,14 +92,21 @@ class InvestmentAnalysisService:
         return files
 
     @staticmethod
+    @traced('load_markdown_documents')
     def load_markdown_documents(paths: list[Path]) -> list[Document]:
-        return [
+        documents = [
             Document(
                 page_content=path.read_text(encoding="utf-8"),
                 metadata={"source": str(path), "file_name": path.name},
             )
             for path in paths
         ]
+        recorder = CURRENT.get()
+        if recorder is not None:
+            for doc in documents:
+                recorder.add_evidence(doc.page_content, source=doc.metadata['source'],
+                                      title=doc.metadata['file_name'])
+        return documents
 
     @staticmethod
     def format_docs(docs: list[Document]) -> str:
@@ -212,10 +223,12 @@ class InvestmentAnalysisService:
             ]
         )
 
+    @traced('discover_sources', kind='function')
     def discover_sources(self, state: GraphState) -> GraphState:
         state.source_files = [str(path) for path in self.source_files]
         return state
 
+    @traced('analyze_market', kind='function')
     def analyze_market(self, state: GraphState) -> GraphState:
         docs = self.retriever.invoke(
             f"{state.domain} market size growth demand regulation trends"
@@ -230,6 +243,7 @@ class InvestmentAnalysisService:
         state.market_analysis = response.content
         return state
 
+    @traced('extract_companies', kind='function')
     def extract_companies(self, state: GraphState) -> GraphState:
         full_context = self.format_docs(self.documents)
         structured_llm = self.llm.with_structured_output(CompanyList)
@@ -238,64 +252,78 @@ class InvestmentAnalysisService:
         )
         companies = result.companies[:10]
         if not companies:
+            recorder = CURRENT.get()
+            if recorder is not None:
+                recorder.note_fallback('company_extraction_empty_regex_fallback')
             companies = self.fallback_company_candidates(full_context)
         state.companies = companies[:10]
         return state
 
+    @traced('collect_company_contexts', kind='function')
     def collect_company_contexts(self, state: GraphState) -> GraphState:
         company_contexts: dict[str, str] = {}
         for company in state.companies:
-            docs = self.retriever.invoke(
-                f"{company} technology product traction patents market team competition risk"
-            )
-            company_contexts[company] = self.format_docs(docs)
+            with company_scope(company):
+                docs = self.retriever.invoke(
+                    f"{company} technology product traction patents market team competition risk"
+                )
+                company_contexts[company] = self.format_docs(docs)
         state.company_contexts = company_contexts
         return state
 
+    @traced('run_dimension_agent', kind='function')
     def run_dimension_agent(
         self, state: GraphState, prompt: ChatPromptTemplate, field_name: str
     ) -> GraphState:
         structured_llm = self.llm.with_structured_output(AgentEvaluation)
         results: dict[str, dict[str, Any]] = {}
         for company in state.companies:
-            context = state.company_contexts[company]
-            result = structured_llm.invoke(
-                prompt.format_messages(
-                    domain=state.domain,
-                    company=company,
-                    context=context,
+            with company_scope(company):
+                context = state.company_contexts[company]
+                result = structured_llm.invoke(
+                    prompt.format_messages(
+                        domain=state.domain,
+                        company=company,
+                        context=context,
+                    )
                 )
-            )
-            results[company] = result.model_dump()
+                results[company] = result.model_dump()
         setattr(state, field_name, results)
         return state
 
+    @traced('evaluate_technology', kind='function')
     def evaluate_technology(self, state: GraphState) -> GraphState:
         return self.run_dimension_agent(
             state, self.technology_prompt, "technology_evaluations"
         )
 
+    @traced('evaluate_market', kind='function')
     def evaluate_market(self, state: GraphState) -> GraphState:
         return self.run_dimension_agent(
             state, self.market_eval_prompt, "market_evaluations"
         )
 
+    @traced('evaluate_business', kind='function')
     def evaluate_business(self, state: GraphState) -> GraphState:
         return self.run_dimension_agent(
             state, self.business_prompt, "business_evaluations"
         )
 
+    @traced('evaluate_team', kind='function')
     def evaluate_team(self, state: GraphState) -> GraphState:
         return self.run_dimension_agent(state, self.team_prompt, "team_evaluations")
 
+    @traced('evaluate_risk', kind='function')
     def evaluate_risk(self, state: GraphState) -> GraphState:
         return self.run_dimension_agent(state, self.risk_prompt, "risk_evaluations")
 
+    @traced('evaluate_competition', kind='function')
     def evaluate_competition(self, state: GraphState) -> GraphState:
         return self.run_dimension_agent(
             state, self.competition_prompt, "competition_evaluations"
         )
 
+    @traced('investment_supervisor', kind='function')
     def investment_supervisor(self, state: GraphState) -> GraphState:
         # Supervisor가 하위 평가 Agent들을 순차 호출하고 결과를 다시 state에 집계합니다.
         state = self.evaluate_technology(state)
@@ -306,49 +334,51 @@ class InvestmentAnalysisService:
         state = self.evaluate_competition(state)
         return state
 
+    @traced('rank_companies', kind='function')
     def rank_companies(self, state: GraphState) -> GraphState:
         structured_llm = self.llm.with_structured_output(CompanyEvaluation)
         evaluations: list[dict[str, Any]] = []
         for company in state.companies:
-            result = structured_llm.invoke(
-                self.ranking_prompt.format_messages(
-                    domain=state.domain,
-                    company=company,
-                    technology_json=json.dumps(
-                        state.technology_evaluations[company],
-                        ensure_ascii=False,
-                        indent=2,
-                    ),
-                    market_json=json.dumps(
-                        state.market_evaluations[company],
-                        ensure_ascii=False,
-                        indent=2,
-                    ),
-                    business_json=json.dumps(
-                        state.business_evaluations[company],
-                        ensure_ascii=False,
-                        indent=2,
-                    ),
-                    team_json=json.dumps(
-                        state.team_evaluations[company],
-                        ensure_ascii=False,
-                        indent=2,
-                    ),
-                    risk_json=json.dumps(
-                        state.risk_evaluations[company],
-                        ensure_ascii=False,
-                        indent=2,
-                    ),
-                    competition_json=json.dumps(
-                        state.competition_evaluations[company],
-                        ensure_ascii=False,
-                        indent=2,
-                    ),
+            with company_scope(company):
+                result = structured_llm.invoke(
+                    self.ranking_prompt.format_messages(
+                        domain=state.domain,
+                        company=company,
+                        technology_json=json.dumps(
+                            state.technology_evaluations[company],
+                            ensure_ascii=False,
+                            indent=2,
+                        ),
+                        market_json=json.dumps(
+                            state.market_evaluations[company],
+                            ensure_ascii=False,
+                            indent=2,
+                        ),
+                        business_json=json.dumps(
+                            state.business_evaluations[company],
+                            ensure_ascii=False,
+                            indent=2,
+                        ),
+                        team_json=json.dumps(
+                            state.team_evaluations[company],
+                            ensure_ascii=False,
+                            indent=2,
+                        ),
+                        risk_json=json.dumps(
+                            state.risk_evaluations[company],
+                            ensure_ascii=False,
+                            indent=2,
+                        ),
+                        competition_json=json.dumps(
+                            state.competition_evaluations[company],
+                            ensure_ascii=False,
+                            indent=2,
+                        ),
+                    )
                 )
-            )
-            item = result.model_dump()
-            item["total_score"] = result.total_score
-            evaluations.append(item)
+                item = result.model_dump()
+                item["total_score"] = result.total_score
+                evaluations.append(item)
         state.evaluations = sorted(
             evaluations,
             key=lambda item: item["total_score"],
@@ -356,6 +386,7 @@ class InvestmentAnalysisService:
         )
         return state
 
+    @traced('apply_investment_policy', kind='function')
     def apply_investment_policy(self, state: GraphState) -> GraphState:
         selected = [
             item
@@ -380,9 +411,11 @@ class InvestmentAnalysisService:
             )
         return state
 
+    @traced('route_after_policy', kind='function')
     def route_after_policy(self, state: GraphState) -> str:
         return state.policy_decision or "hold"
 
+    @traced('_write_common_outputs', kind='function')
     def _write_common_outputs(self, state: GraphState, timestamp: str) -> None:
         market_output_path = self.output_dir / f"market_analysis_{timestamp}.md"
         evaluations_output_path = self.output_dir / f"evaluations_{timestamp}.json"
@@ -423,6 +456,7 @@ class InvestmentAnalysisService:
             encoding="utf-8",
         )
 
+    @traced('generate_investment_report', kind='function')
     def generate_investment_report(self, state: GraphState) -> GraphState:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         self._write_common_outputs(state, timestamp)
@@ -447,6 +481,7 @@ class InvestmentAnalysisService:
         state.output_path = str(output_path)
         return state
 
+    @traced('generate_hold_report', kind='function')
     def generate_hold_report(self, state: GraphState) -> GraphState:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         self._write_common_outputs(state, timestamp)
@@ -466,15 +501,15 @@ class InvestmentAnalysisService:
 
     def build_graph(self):
         workflow = StateGraph(GraphState)
-        workflow.add_node("discover_sources", self.discover_sources)
-        workflow.add_node("analyze_market", self.analyze_market)
-        workflow.add_node("extract_companies", self.extract_companies)
-        workflow.add_node("collect_company_contexts", self.collect_company_contexts)
-        workflow.add_node("investment_supervisor", self.investment_supervisor)
-        workflow.add_node("rank_companies", self.rank_companies)
-        workflow.add_node("apply_investment_policy", self.apply_investment_policy)
-        workflow.add_node("generate_investment_report", self.generate_investment_report)
-        workflow.add_node("generate_hold_report", self.generate_hold_report)
+        workflow.add_node("discover_sources", traced("discover_sources", kind="node")(self.discover_sources))
+        workflow.add_node("analyze_market", traced("analyze_market", kind="node")(self.analyze_market))
+        workflow.add_node("extract_companies", traced("extract_companies", kind="node")(self.extract_companies))
+        workflow.add_node("collect_company_contexts", traced("collect_company_contexts", kind="node")(self.collect_company_contexts))
+        workflow.add_node("investment_supervisor", traced("investment_supervisor", kind="node")(self.investment_supervisor))
+        workflow.add_node("rank_companies", traced("rank_companies", kind="node")(self.rank_companies))
+        workflow.add_node("apply_investment_policy", traced("apply_investment_policy", kind="node")(self.apply_investment_policy))
+        workflow.add_node("generate_investment_report", traced("generate_investment_report", kind="node")(self.generate_investment_report))
+        workflow.add_node("generate_hold_report", traced("generate_hold_report", kind="node")(self.generate_hold_report))
 
         workflow.set_entry_point("discover_sources")
         workflow.add_edge("discover_sources", "analyze_market")
@@ -495,6 +530,7 @@ class InvestmentAnalysisService:
         workflow.add_edge("generate_hold_report", END)
         return workflow.compile()
 
+    @service_execution
     def run(self, domain: str | None = None) -> GraphState:
         graph = self.build_graph()
         initial_state = GraphState(domain=domain or self.config.domain)

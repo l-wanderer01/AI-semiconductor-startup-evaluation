@@ -19,6 +19,9 @@ from qdrant_client import QdrantClient, models
 from sentence_transformers import SentenceTransformer
 from sklearn.feature_extraction.text import TfidfVectorizer
 
+from evaluation.integration import observed_search
+from evaluation.recording import CURRENT
+
 from .config import settings
 from .models import ResearchEvidence
 
@@ -140,6 +143,11 @@ class QdrantHybridKnowledgeBase:
 
     @classmethod
     def build(cls, *, collection_name: str, docs: List[Document]) -> "QdrantHybridKnowledgeBase":
+        recorder = CURRENT.get()
+        if recorder is not None:
+            for doc in docs:
+                recorder.add_evidence(doc.page_content, source=str(doc.metadata.get('source', 'unknown')),
+                                      title=str(doc.metadata.get('title', collection_name)))
         client = get_qdrant_client()
         fingerprint = _fingerprint(docs)
         meta_path = settings.qdrant_path / f"{collection_name}.meta.json"
@@ -194,6 +202,7 @@ class QdrantHybridKnowledgeBase:
 
         return cls(collection_name=collection_name, fingerprint=fingerprint)
 
+    @observed_search()
     def search(self, query: str, limit: int | None = None) -> List[Document]:
         client = get_qdrant_client()
         limit = limit or settings.hybrid_search_limit

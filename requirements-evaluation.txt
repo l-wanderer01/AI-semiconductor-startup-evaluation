@@ -1,0 +1,6 @@
+# generation의 .venv를 읽기 전용으로 참조하는 별도 평가 환경에 설치한다.
+ragas==0.4.3
+reportlab==4.4.10
+pypdf==6.6.0
+pillow==12.1.0
+pandas==2.3.3
