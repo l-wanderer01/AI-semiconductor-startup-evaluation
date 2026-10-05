@@ -527,3 +527,9 @@ metric별 실제 프롬프트와 지원 한계는 [구현 기록](issue20.md)에
 | #23 판정 정책 independent-three-state-v1 | 독립 기준 자료의 3상태·핵심 오류·미완료 집계 및 RAGAS precision/recall 연결 | [정책·사용·표본 검토](issue23.md), 실제 사람 검토 및 baseline 평가 대기 |
 | #24 실제 입력 계보 actual-request-query-v2 | 원문/전달 문맥 지지와 인용을 구분하고 실제 검색 query·순위에 진단을 연결 | [정책·사용·검증](issue24.md), 실제 baseline 및 사람 표본 검토 대기 |
 | #25 필수 항목 fixed-required-information-v1 / adapter 0.5.0 | 고정 적용 항목·원문 rubric 검사와 RAGAS recall을 독립 저장, 미연결 범위 보존 | [정책·사용·검증](issue25.md), 실제 baseline 및 사람 표본 검토 대기 |
+
+## 버전별 규칙 정합성 (#26)
+
+[규칙 검사 정책·K·저장·재검사](issue26.md)를 참조한다.
+현재 동작 보존과 명시된 목표 준수를 정책 버전별로 분리하고,
+`checks.json`과 `rule_conformance.json`에 저장한다. RAGAS 점수와 K를 합치지 않는다.

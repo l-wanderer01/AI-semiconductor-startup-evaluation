@@ -1,0 +1,25 @@
+{
+  "schema_version": "rule-policy-v1",
+  "weights": {
+    "Seed": {"team": 0.30, "market": 0.25, "technology": 0.25, "traction": 0.05, "competition": 0.10, "risk": 0.05},
+    "Series A": {"team": 0.25, "market": 0.20, "technology": 0.25, "traction": 0.15, "competition": 0.10, "risk": 0.05},
+    "Series B": {"team": 0.20, "market": 0.20, "technology": 0.20, "traction": 0.25, "competition": 0.10, "risk": 0.05},
+    "Series C+": {"team": 0.15, "market": 0.15, "technology": 0.15, "traction": 0.25, "competition": 0.15, "risk": 0.15}
+  },
+  "policies": {
+    "agents-baseline-v1": {"path": "agents", "mode": "behavior_preservation", "scale": "sum-6-30", "range": [6, 30], "formula": "six_item_sum", "threshold": 20, "top_k": 3, "risk_direction": "higher_is_more_manageable", "issues": [1, 2, 6, 7]},
+    "investment_pipeline-baseline-v1": {"path": "investment_pipeline", "mode": "behavior_preservation", "scale": "weighted-20-100", "range": [20, 100], "formula": "rounded_market_traction_average", "threshold": 65, "high_priority": 80, "watchlist": 50, "top_k": 3, "risk_direction": "6_minus_risk_signal", "issues": [1, 2, 3, 4, 6, 7]},
+    "investment_pipeline-target-v1": {"path": "investment_pipeline", "mode": "target_conformance", "scale": "weighted-20-100", "range": [20, 100], "formula": "individual_market_traction", "threshold": 65, "high_priority": 80, "watchlist": 50, "top_k": 3, "risk_direction": "6_minus_risk_signal", "issues": [3, 7], "scope": "#3 explicit 23-point example; #7 configurable grade/route boundaries. Other unresolved product-policy choices are not asserted as agreed."}
+  },
+  "known_discrepancies": [
+    {"issue": 1, "reason": "agents 6-30 and CLI 20-100 are distinct scales; official path remains unresolved"},
+    {"issue": 2, "reason": "README formula and 0-100 range conflict with implemented /5*100 and 20-100; missing/0-19 target policy unresolved"},
+    {"issue": 3, "reason": "Series A market=5 traction=1: baseline contribution 21, explicit target 23"},
+    {"issue": 4, "reason": "README 5-1 and 5-2 Series A tables disagree; checker uses explicitly versioned 5-2 weights"},
+    {"issue": 6, "reason": "arithmetic risk inversion is checkable; evidence semantics require a reviewed risk rubric"},
+    {"issue": 7, "reason": "README >65 differs from CLI >=65; baseline grades hardcode 80/65/50 despite configurable ranking thresholds"}
+  ],
+  "tie_break": "stable_input_order",
+  "rounding": "python_round_half_even_after_sum",
+  "tolerance": 0.000000001
+}

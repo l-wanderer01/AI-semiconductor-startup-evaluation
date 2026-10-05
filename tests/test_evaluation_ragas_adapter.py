@@ -125,6 +125,11 @@ class RagasAdapterTests(unittest.TestCase):
             second = asyncio.run(evaluate_inputs(storage, run.name, [sample], self.adapter(),
                                                 previous_evaluation_id=first.name, resume_reason='rerun', **args))
             self.assertNotEqual(first, second)
+            rules = json.loads((second / 'rule_conformance.json').read_text())['data']
+            self.assertFalse(rules['ragas_combined'])
+            self.assertIsNone(rules['generation_summary']['policies']['agents-baseline-v1']['K'])
+            self.assertTrue(any(r['value'] == 1.0 for r in
+                [json.loads(line) for line in (second / 'ragas_results.jsonl').read_text().splitlines()]))
             self.assertTrue((first / '.frozen').exists())
             self.assertTrue((second / '.frozen').exists())
             from evaluation.recording import digest
