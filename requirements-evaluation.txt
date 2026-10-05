@@ -1,5 +1,10 @@
 # generation의 .venv를 읽기 전용으로 참조하는 별도 평가 환경에 설치한다.
 ragas==0.4.3
+# 평가 adapter 호환성 회귀에서 확인한 핵심 의존성. generation 환경은 수정하지 않는다.
+langchain-core==1.2.18
+langchain-openai==1.1.11
+openai==2.26.0
+pydantic==2.12.5
 reportlab==4.4.10
 pypdf==6.6.0
 pillow==12.1.0

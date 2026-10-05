@@ -541,6 +541,9 @@ class EvaluatorConfiguration(RecordModel):
     configuration_sha256: Sha256
     cache_enabled: bool = False
     max_retries: Count = 0
+    llm_adapter: str | None = None
+    dependencies: dict[str, str] = Field(default_factory=dict)
+    runtime_settings: dict[str, JsonValue] = Field(default_factory=dict)
     custom_factual_configuration: dict[str, JsonValue] | None = None
     custom_grounding_configuration: dict[str, JsonValue] | None = None
     custom_coverage_configuration: dict[str, JsonValue] | None = None
