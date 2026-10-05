@@ -27,6 +27,8 @@ def main():
     evaluate.add_argument('--custom-factual', action='store_true', help='#23 독립 기준 3상태 판정 및 핵심 오류 검사')
     evaluate.add_argument('--reference-dataset', type=Path, help='--custom-factual에 사용할 #22와 동일한 검토 완료 데이터셋')
     evaluate.add_argument('--judge-model', default='gpt-4.1-mini')
+    evaluate.add_argument('--custom-grounding', action='store_true', help='#24 실제 문맥·원문 근거 지지 및 인용 검증')
+    evaluate.add_argument('--grounding-model', default='gpt-4.1-mini')
     evaluate.add_argument('--previous-evaluation-id')
     evaluate.add_argument('--resume-reason')
     args = parser.parse_args()
@@ -40,6 +42,8 @@ def main():
         parser.error('--custom-factual에는 --stage-package와 --reference-dataset이 필요합니다.')
     if args.reference_dataset and not args.custom_factual:
         parser.error('--reference-dataset은 --custom-factual과 함께 사용합니다.')
+    if args.custom_grounding and not args.stage_package:
+        parser.error('--custom-grounding에는 --stage-package가 필요합니다.')
     manifest = RunManifest.model_validate_json((directory / 'run.json').read_text())
     preparation = None
     stage_package = None
@@ -48,11 +52,16 @@ def main():
             parser.error('--stage-package는 패키지에 저장된 reference 버전/해시를 사용합니다.')
         from .stage_samples import load_stage_package, ragas_inputs
         stage_package = load_stage_package(args.stage_package, directory)
-        if stage_package['dataset'] is None or stage_package['dataset']['purpose'] != 'baseline':
+        if stage_package['dataset'] is None and args.custom_grounding and not args.custom_factual:
+            from .dataset import canonical_bytes,sha256
+            args.dataset_version='no-reference-context-only-v1'
+            args.reference_sha256=sha256(canonical_bytes({'reference':None,'purpose':'generation_context_only'}))
+        elif stage_package['dataset'] is None or stage_package['dataset']['purpose'] != 'baseline':
             parser.error('--stage-package 평가에는 사람 검토된 baseline 데이터셋이 필요합니다.')
+        else:
+            dataset_manifest = stage_package['dataset']['manifest']
+            args.dataset_version, args.reference_sha256 = dataset_manifest['version'], dataset_manifest['sha256']
         samples = ragas_inputs(stage_package)
-        dataset_manifest = stage_package['dataset']['manifest']
-        args.dataset_version, args.reference_sha256 = dataset_manifest['version'], dataset_manifest['sha256']
     elif args.dataset:
         if not args.bindings or args.dataset_version or args.reference_sha256:
             parser.error('--dataset에는 --bindings만 지정합니다. 버전/해시는 검증된 데이터셋에서 읽습니다.')
@@ -74,6 +83,10 @@ def main():
     if args.custom_factual:
         from .factual import LangChainFactualJudge
         factual_judge = LangChainFactualJudge.openai(args.judge_model)
+    support_judge = None
+    if args.custom_grounding:
+        from .grounding import LangChainSupportJudge
+        support_judge = LangChainSupportJudge.openai(args.grounding_model)
     result = asyncio.run(evaluate_inputs(
         EvaluationStorage(directory.parent), directory.name, samples, RagasAdapter.openai(args.model),
         dataset_version=args.dataset_version, reference_sha256=args.reference_sha256,
@@ -82,6 +95,7 @@ def main():
         preparation_metadata=preparation,
         stage_package=stage_package,
         factual_judge=factual_judge, reference_dataset_directory=args.reference_dataset,
+        support_judge=support_judge,
     ))
     print(result)
 

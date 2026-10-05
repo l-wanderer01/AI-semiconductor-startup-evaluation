@@ -17,7 +17,7 @@ from .recording import SnapshotPayload, digest, identifier, json_value, now
 from .storage import EvaluationStorage, _redact_value
 
 RAGAS_VERSION = '0.4.3'
-ADAPTER_VERSION = '0.3.0'
+ADAPTER_VERSION = '0.4.0'
 API_VERSION = 'SingleTurnSample.single_turn_ascore'
 KOREAN_INSTRUCTION = ('\n한국어 입력을 그대로 평가하세요. 숫자·통화·단위·시점·기업명과 비교 조건을 보존하고, '
                       'PoC·검증·계약·양산을 구분하세요. 이유와 분해된 주장은 한국어로 작성하되 JSON schema를 지키세요.')
@@ -121,13 +121,14 @@ class RagasAdapter:
                 atomicity='high' if factual else None, coverage='high' if factual else None,
                 prompt=PromptVersion(prompt_id=name, version='ko-explicit-instruction-v1', sha256=ref.sha256, snapshot=ref),
                 language='ko', trace_supported=True,
-                trace_limitations=['public callbacks only; raw/custom claim ID mapping and counts unsupported'],
+                trace_limitations=['public callbacks only; exact raw/custom mapping is partial; native counts unsupported'],
             ))
         settings = {'ragas_version': RAGAS_VERSION, 'api_version': API_VERSION, 'adapter_version': ADAPTER_VERSION,
                     'schema_version': '0.1.0', 'model': self.model.model_dump(mode='json'),
                     'metrics': [m.model_dump(mode='json') for m in metric_configs],
                     'max_retries': self.max_retries, 'cache_enabled': False}
         runtime_settings = {'sample_timeout_seconds': self.timeout_seconds,
+                            'input_lineage_policy': 'actual-request-query-v2',
                             'adapter_max_retries': self.max_retries,
                             'library_retry_attempts': getattr(getattr(next(iter(self.metrics.values())).llm, 'run_config', None), 'max_retries', None),
                             'prompt_parse_retries': 3,
@@ -192,7 +193,8 @@ async def evaluate_inputs(storage: EvaluationStorage, run_id: str, samples: list
                           adapter: RagasAdapter, *, dataset_version: str,
                           reference_sha256: str, input_sha256: str, evidence_sha256: str,
                           previous_evaluation_id=None, resume_reason=None, preparation_metadata=None, stage_package=None,
-                          factual_judge=None, reference_dataset_directory=None, allow_synthetic=False):
+                          factual_judge=None, reference_dataset_directory=None, allow_synthetic=False,
+                          support_judge=None):
     """불변 생성 run 아래 독립 평가를 만든다. 재개도 새 ID로 저장한다."""
     if factual_judge is not None:
         if stage_package is None or reference_dataset_directory is None:
@@ -209,7 +211,13 @@ async def evaluate_inputs(storage: EvaluationStorage, run_id: str, samples: list
                 raise ValueError('independent source changed before evaluation')
             independent_source_bytes[source.source_id] = content
         samples = factual_pairs(stage_package, samples)
-    if not samples and factual_judge is None:
+    grounding_bundle = None
+    if support_judge is not None:
+        if stage_package is None:
+            raise ValueError('custom grounding requires stage package')
+        from .grounding import prepare_grounding
+        grounding_bundle = prepare_grounding(stage_package, storage.root / run_id)
+    if not samples and factual_judge is None and support_judge is None:
         raise ValueError('evaluation requires at least one sample')
     keys = [(s.sample_id, s.metric_name) for s in samples]
     if len(keys) != len(set(keys)):
@@ -242,8 +250,15 @@ async def evaluate_inputs(storage: EvaluationStorage, run_id: str, samples: list
         configuration.configuration_sha256 = digest(canonical_bytes({'ragas_configuration_sha256': configuration.configuration_sha256,
                                                                       'custom_factual_configuration': custom_config}))
         storage.write_json(directory, 'custom_factual_configuration.json', SnapshotPayload(data=custom_config))
+    if support_judge is not None:
+        from .dataset import canonical_bytes
+        grounding_config = support_judge.configuration()
+        configuration.custom_grounding_configuration = grounding_config
+        configuration.configuration_sha256 = digest(canonical_bytes({'previous_configuration_sha256':configuration.configuration_sha256,
+                                                                      'custom_grounding_configuration':grounding_config}))
+        storage.write_json(directory,'custom_grounding_configuration.json',SnapshotPayload(data=grounding_config))
     sample_ids = {s.sample_id for s in samples}
-    if factual_judge is not None:
+    if factual_judge is not None or support_judge is not None:
         sample_ids.update(s['sample_id'] for s in stage_package['samples'])
     count = len(sample_ids)
     manifest = EvaluationManifest(evaluation_id=evaluation_id, run_id=run_id,
@@ -281,6 +296,10 @@ async def evaluate_inputs(storage: EvaluationStorage, run_id: str, samples: list
         storage.append_jsonl(directory, 'events.jsonl', EventRecord(event_id=identifier('event'), run_id=run_id,
             evaluation_id=evaluation_id, event_type=kind, timestamp=now(), **fields))
     event('start', details={'scope': 'evaluation'})
+    if grounding_bundle is not None:
+        for doc in grounding_bundle['documents'].values():
+            doc.snapshot = storage.write_text(directory, identifier('grounding_document')+'.txt',doc.text,media_type='text/plain')
+            storage.append_jsonl(directory,'grounding_documents.jsonl',doc)
     for original in samples:
         sample = original.model_copy(update={'evaluation_id': evaluation_id})
         storage.append_jsonl(directory, 'ragas_samples.jsonl', sample)
@@ -340,9 +359,31 @@ async def evaluate_inputs(storage: EvaluationStorage, run_id: str, samples: list
         storage.write_json(directory, 'custom_factual_metrics.json', SnapshotPayload(data=custom_summaries))
         for row in paired_results(stage_package, samples, results, custom_summaries):
             storage.append_jsonl(directory, 'factual_sample_results.jsonl', SnapshotPayload(data=row))
+    grounding_by_sample = {}
+    if grounding_bundle is not None:
+        from .grounding import evaluate_grounding, diagnostic_results
+        try:
+            groundings,citations,grounding_summaries = evaluate_grounding(grounding_bundle,support_judge,evaluation_id)
+        except Exception as failure:
+            from .recording import error_record
+            event('failure',details={'scope':'custom_grounding','reason':str(failure)})
+            values=manifest.model_dump(mode='json')
+            values.update(quality_evaluation_status='failed',ended_at=now(),error=error_record(failure))
+            storage.update_manifest(directory,'evaluation.json',EvaluationManifest.model_validate(values))
+            storage.freeze(directory)
+            raise
+        for row in groundings:
+            storage.append_jsonl(directory,'grounding_assessments.jsonl',row)
+        for row in citations:
+            storage.append_jsonl(directory,'citation_assessments.jsonl',row)
+        storage.write_json(directory,'grounding_metrics.json',SnapshotPayload(data=grounding_summaries))
+        for row in diagnostic_results(grounding_bundle,samples,results):
+            storage.append_jsonl(directory,'grounding_diagnostics.jsonl',SnapshotPayload(data=row))
+        grounding_by_sample = {s['sample_id']:s for s in grounding_summaries}
     custom_by_sample = {s['key']: s for s in custom_summaries if s['scope'] == 'sample'}
     complete = sum(all(r.evaluation_status in {'completed', 'not_applicable'} for r in results if r.sample_id == sid)
-                   and (sid not in custom_by_sample or custom_by_sample[sid]['status'] in {'completed', 'not_applicable'}) for sid in sample_ids)
+                   and (sid not in custom_by_sample or custom_by_sample[sid]['status'] in {'completed', 'not_applicable'})
+                   and (sid not in grounding_by_sample or grounding_by_sample[sid]['status']=='completed') for sid in sample_ids)
     values = manifest.model_dump(mode='json')
     storage.write_json(directory, 'metrics.json', MetricsRecord(run_id=run_id, evaluation_id=evaluation_id,
         scope='run', sample_count=count, ragas_results=results))

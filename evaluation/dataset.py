@@ -344,13 +344,20 @@ def prepare_run_samples(dataset_directory: Path, run_directory: Path, bindings: 
                     applicability.append({'case_id': case.case_id, 'metric_name': metric, 'evaluation_status': 'not_applicable', 'reason': '실제 검색 호출이 없는 구간: ' + reviews[case.case_id].retrieval_applicability_reason})
                     continue
                 candidates = retrieval['candidates']
-                base.update(context_kind='retrieved', origin_invocation_id=retrieval['invocation_id'],
+                base.update(context_kind='retrieved', origin_invocation_id=retrieval['invocation_id'], user_input=retrieval['query'],
                             context_ids=[c['context_id'] for c in candidates], retrieved_contexts=[c['text'] for c in candidates], evidence_ids=[c['evidence_id'] for c in candidates])
             elif metric == 'faithfulness':
                 if not delivered:
                     applicability.append({'case_id': case.case_id, 'metric_name': metric, 'evaluation_status': 'not_applicable', 'reason': '실제 전달 문맥이 기록되지 않음'})
                     continue
+                input_ref=invocation.get('input_snapshot')
+                if input_ref is None:
+                    raise ValueError('faithfulness requires actual generation input')
+                input_path=Path(input_ref['path'])
+                if input_path.is_symlink() or not input_path.resolve().is_relative_to(run_directory.resolve()) or sha256(input_path.read_bytes()) != input_ref['sha256']:
+                    raise ValueError('faithfulness actual input snapshot mismatch')
                 base.update(context_kind='delivered', origin_invocation_id=binding.generation_invocation_id,
+                            user_input=input_path.read_text(), reference=None, reference_ids=[],
                             context_ids=[c['context_id'] for c in delivered], retrieved_contexts=[c['text'] for c in delivered], evidence_ids=list(dict.fromkeys(e for c in delivered for e in c['evidence_ids'])))
             else:
                 base.update(context_kind='none', origin_invocation_id=binding.generation_invocation_id)
