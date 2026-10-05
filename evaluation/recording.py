@@ -296,7 +296,7 @@ class RunRecorder:
                 return [leaf for v in value for leaf in text_leaves(v)]
             return []
         upstream = [r.invocation_id for r in self.outputs
-                    if r.company_id in {record.company_id, None}
+                    if (record.company_id is None or r.company_id in {record.company_id, None})
                     and any(leaf in text for leaf in text_leaves(r.response))]
         retrieval_ids = [r.invocation_id for r in self.retrievals
                          if any(c.evidence_id in evidence_ids for c in r.candidates)]

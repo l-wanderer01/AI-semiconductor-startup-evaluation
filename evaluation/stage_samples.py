@@ -359,6 +359,7 @@ def ragas_inputs(package):
                         reference_ids=sample.reference_ids, evidence_ids=sample.evidence_ids,
                         origin_invocation_id=sample.invocation_id, context_kind='none')
             if metric == 'faithfulness':
+                base.update(reference=None, reference_ids=[])
                 if sample.delivered_context_ids:
                     base.update(context_kind='delivered', context_ids=sample.delivered_context_ids,
                                 retrieved_contexts=[contexts[c]['text'] for c in sample.delivered_context_ids])
@@ -369,7 +370,7 @@ def ragas_inputs(package):
                     retrieval = retrievals[retrieval_id]
                     candidates = retrieval['candidates']
                     result.append(RagasSampleInput(**{**base, 'sample_id': stable_id('retrieval_sample', sample.sample_id, retrieval_id),
-                        'context_kind': 'retrieved', 'origin_invocation_id': retrieval_id,
+                        'context_kind': 'retrieved', 'origin_invocation_id': retrieval_id, 'user_input': retrieval['query'],
                         'context_ids': [c['context_id'] for c in candidates], 'retrieved_contexts': [c['text'] for c in candidates],
                         'evidence_ids': [c['evidence_id'] for c in candidates]}))
                 continue

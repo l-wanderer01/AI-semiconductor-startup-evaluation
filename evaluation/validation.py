@@ -130,7 +130,19 @@ def validate_ragas_input(directory: Path, sample) -> list[str]:
         if value not in evidence_ids:
             errors.append('unknown evidence ID: ' + value)
     if sample.context_kind == 'delivered':
+        invocation = invocations.get(sample.origin_invocation_id)
+        ref = invocation.get('input_snapshot') if invocation else None
+        if ref is None:
+            errors.append('faithfulness actual input snapshot missing')
+        else:
+            path = Path(ref['path'])
+            if path.is_symlink() or not path.resolve().is_relative_to(directory.resolve()) or not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest() != ref['sha256']:
+                errors.append('faithfulness actual input snapshot mismatch')
+            elif sample.user_input != path.read_text():
+                errors.append('faithfulness user_input differs from actual generation input')
         contexts = [delivered.get(value) for value in sample.context_ids]
+        if sample.context_ids != [c['context_id'] for c in delivered.values() if c['invocation_id']==sample.origin_invocation_id]:
+            errors.append('faithfulness must preserve the full recorded delivered context sequence')
         if not contexts or any(c is None for c in contexts):
             errors.append('missing/unknown delivered context ID')
         elif any(c['invocation_id'] != sample.origin_invocation_id for c in contexts):
@@ -148,17 +160,23 @@ def validate_ragas_input(directory: Path, sample) -> list[str]:
                 errors.append('received input snapshot outside run')
             elif hashlib.sha256(path.read_bytes()).hexdigest() != ref['sha256']:
                 errors.append('received input hash mismatch')
-            elif sample.retrieved_contexts != [path.read_text()] or sample.context_ids != ['received_' + sample.origin_invocation_id]:
+            elif sample.retrieved_contexts != [path.read_text()] or sample.user_input != path.read_text() or sample.context_ids != ['received_' + sample.origin_invocation_id]:
                 errors.append('received context differs from actual invocation input')
     elif sample.context_kind == 'retrieved':
         retrieval = retrievals.get(sample.origin_invocation_id)
         if retrieval is None:
             errors.append('origin is not a recorded retrieval')
         else:
+            if sample.user_input != retrieval['query']:
+                errors.append('retrieval user_input differs from actual query')
             expected_ids = [c['context_id'] for c in retrieval['candidates']]
             expected_texts = [c['text'] for c in retrieval['candidates']]
             if sample.context_ids != expected_ids or sample.retrieved_contexts != expected_texts:
                 errors.append('retrieval candidates/order differ from recorded retrieval')
+            if sample.evidence_ids != [c['evidence_id'] for c in retrieval['candidates']]:
+                errors.append('retrieval evidence IDs differ from ranked candidates')
+            if retrieval.get('error') is not None:
+                errors.append('retrieval invocation failed')
     if sample.context_sha256 is not None:
         content = json.dumps(sample.retrieved_contexts, ensure_ascii=False, separators=(',', ':')).encode()
         if hashlib.sha256(content).hexdigest() != sample.context_sha256:

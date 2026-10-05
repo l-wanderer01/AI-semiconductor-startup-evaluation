@@ -542,6 +542,7 @@ class EvaluatorConfiguration(RecordModel):
     cache_enabled: bool = False
     max_retries: Count = 0
     custom_factual_configuration: dict[str, JsonValue] | None = None
+    custom_grounding_configuration: dict[str, JsonValue] | None = None
 
 
 class EvaluationManifest(TimingRecord):

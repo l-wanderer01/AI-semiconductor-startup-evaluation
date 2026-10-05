@@ -28,6 +28,8 @@ verified fact만 사용한다. 미래 자료와 pending/rejected fact는 제외 
 | tests/test_evaluation_factual.py | 한국어 가상 정책 사례와 실제 설치된 RAGAS API 연동 |
 
 고정 정책 `independent-three-state-v1`, judge `ko-reference-judge-v1`, adapter `0.3.0`이다.
+후속 #24까지 통합한 실행은 adapter `0.4.0`과 실제 입력 계보 정책을 사용한다.
+문맥·인용 검사 옵션 및 결합 설정은 [#24 구현 기록](issue24.md)을 참조한다.
 custom prompt 본문·SHA-256·출력 schema·모델 설정을 저장하고, 기존 RAGAS 설정 해시와
 합쳐 evaluator configuration 해시를 만든다. isolated 계약도 이 결합 해시와 같아야 한다.
 기존 RAGAS 전용 실행은 custom judge를 호출하지 않는다.

@@ -152,7 +152,7 @@ class InputLineageTests(unittest.TestCase):
             rec.finish(exc=ValueError('fixture'))
             context = rec.contexts[0]
             sample = RagasSampleInput(sample_id='sample', evaluation_id='eval', metric_name='faithfulness',
-                                      user_input='질문', response='응답', retrieved_contexts=[context.text],
+                                      user_input=Path(rec.records[-1].input_snapshot.path).read_text(), response='응답', retrieved_contexts=[context.text],
                                       context_kind='delivered', context_ids=[context.context_id],
                                       origin_invocation_id=context.invocation_id)
             self.assertEqual(validate_ragas_input(rec.directory, sample), [])
