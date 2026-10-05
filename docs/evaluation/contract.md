@@ -1,10 +1,10 @@
 # Agent 평가 계약
 
 - 계약 버전: 0.1.0
-- 관련 이슈: #19, #20, #21, #22, #23, #24
+- 관련 이슈: #19, #20, #21, #22, #23, #24, #25
 - 작성자: l-wanderer01
 - 최종 수정일: 2026.10.05
-- 상태: #20~#24 평가 기반에 적용 (실제 reference 사람 검토 및 baseline 평가 대기)
+- 상태: #20~#25 평가 기반에 적용 (실제 reference 사람 검토 및 baseline 평가 대기)
 
 ## 1. 목적과 범위
 
@@ -526,3 +526,4 @@ metric별 실제 프롬프트와 지원 한계는 [구현 기록](issue20.md)에
 | #22 sample schema 0.3.0 | 원자 주장·원문 위치·단계 sample·후보 계보·received_input 확장 | run 계약 0.1.0과 별개로 후처리 보관 계약을 버전 관리 |
 | #23 판정 정책 independent-three-state-v1 | 독립 기준 자료의 3상태·핵심 오류·미완료 집계 및 RAGAS precision/recall 연결 | [정책·사용·표본 검토](issue23.md), 실제 사람 검토 및 baseline 평가 대기 |
 | #24 실제 입력 계보 actual-request-query-v2 | 원문/전달 문맥 지지와 인용을 구분하고 실제 검색 query·순위에 진단을 연결 | [정책·사용·검증](issue24.md), 실제 baseline 및 사람 표본 검토 대기 |
+| #25 필수 항목 fixed-required-information-v1 / adapter 0.5.0 | 고정 적용 항목·원문 rubric 검사와 RAGAS recall을 독립 저장, 미연결 범위 보존 | [정책·사용·검증](issue25.md), 실제 baseline 및 사람 표본 검토 대기 |

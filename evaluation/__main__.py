@@ -29,6 +29,8 @@ def main():
     evaluate.add_argument('--judge-model', default='gpt-4.1-mini')
     evaluate.add_argument('--custom-grounding', action='store_true', help='#24 실제 문맥·원문 근거 지지 및 인용 검증')
     evaluate.add_argument('--grounding-model', default='gpt-4.1-mini')
+    evaluate.add_argument('--required-information', action='store_true', help='#25 고정 필수 항목 충족률과 RAGAS recall 병행 평가')
+    evaluate.add_argument('--coverage-model', default='gpt-4.1-mini')
     evaluate.add_argument('--previous-evaluation-id')
     evaluate.add_argument('--resume-reason')
     args = parser.parse_args()
@@ -38,6 +40,8 @@ def main():
         print(json.dumps({'valid': not errors, 'errors': errors}, ensure_ascii=False, indent=2))
         raise SystemExit(1 if errors else 0)
     from .ragas_adapter import RagasAdapter, evaluate_inputs
+    if args.required_information and not args.custom_factual:
+        parser.error('--required-information에는 --custom-factual이 필요합니다.')
     if args.custom_factual and (not args.stage_package or not args.reference_dataset):
         parser.error('--custom-factual에는 --stage-package와 --reference-dataset이 필요합니다.')
     if args.reference_dataset and not args.custom_factual:
@@ -87,6 +91,10 @@ def main():
     if args.custom_grounding:
         from .grounding import LangChainSupportJudge
         support_judge = LangChainSupportJudge.openai(args.grounding_model)
+    coverage_judge = None
+    if args.required_information:
+        from .coverage import LangChainCoverageJudge
+        coverage_judge = LangChainCoverageJudge.openai(args.coverage_model)
     result = asyncio.run(evaluate_inputs(
         EvaluationStorage(directory.parent), directory.name, samples, RagasAdapter.openai(args.model),
         dataset_version=args.dataset_version, reference_sha256=args.reference_sha256,
@@ -96,6 +104,7 @@ def main():
         stage_package=stage_package,
         factual_judge=factual_judge, reference_dataset_directory=args.reference_dataset,
         support_judge=support_judge,
+        coverage_judge=coverage_judge,
     ))
     print(result)
 
