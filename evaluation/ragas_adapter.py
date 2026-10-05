@@ -17,7 +17,7 @@ from .recording import SnapshotPayload, digest, identifier, json_value, now
 from .storage import EvaluationStorage, _redact_value
 
 RAGAS_VERSION = '0.4.3'
-ADAPTER_VERSION = '0.2.0'
+ADAPTER_VERSION = '0.3.0'
 API_VERSION = 'SingleTurnSample.single_turn_ascore'
 KOREAN_INSTRUCTION = ('\n한국어 입력을 그대로 평가하세요. 숫자·통화·단위·시점·기업명과 비교 조건을 보존하고, '
                       'PoC·검증·계약·양산을 구분하세요. 이유와 분해된 주장은 한국어로 작성하되 JSON schema를 지키세요.')
@@ -191,9 +191,25 @@ class RagasAdapter:
 async def evaluate_inputs(storage: EvaluationStorage, run_id: str, samples: list[RagasSampleInput],
                           adapter: RagasAdapter, *, dataset_version: str,
                           reference_sha256: str, input_sha256: str, evidence_sha256: str,
-                          previous_evaluation_id=None, resume_reason=None, preparation_metadata=None, stage_package=None):
+                          previous_evaluation_id=None, resume_reason=None, preparation_metadata=None, stage_package=None,
+                          factual_judge=None, reference_dataset_directory=None, allow_synthetic=False):
     """불변 생성 run 아래 독립 평가를 만든다. 재개도 새 ID로 저장한다."""
-    if not samples:
+    if factual_judge is not None:
+        if stage_package is None or reference_dataset_directory is None:
+            raise ValueError('custom factual evaluation requires stage package and independent reference dataset')
+        from .factual import factual_pairs
+        from .dataset import load_dataset, safe_path, sha256
+        independent_dataset = load_dataset(reference_dataset_directory, require_ready=True, allow_synthetic=allow_synthetic)
+        if stage_package['dataset'] is None or independent_dataset.manifest.sha256 != stage_package['dataset']['manifest']['sha256']:
+            raise ValueError('independent reference dataset hash mismatch')
+        independent_source_bytes = {}
+        for source in independent_dataset.sources:
+            content = safe_path(reference_dataset_directory, source.snapshot.path).read_bytes()
+            if sha256(content) != source.snapshot.sha256:
+                raise ValueError('independent source changed before evaluation')
+            independent_source_bytes[source.source_id] = content
+        samples = factual_pairs(stage_package, samples)
+    if not samples and factual_judge is None:
         raise ValueError('evaluation requires at least one sample')
     keys = [(s.sample_id, s.metric_name) for s in samples]
     if len(keys) != len(set(keys)):
@@ -219,7 +235,17 @@ async def evaluate_inputs(storage: EvaluationStorage, run_id: str, samples: list
     evaluation_id = identifier('evaluation')
     directory = storage.create_evaluation(run_id, evaluation_id)
     configuration = adapter.configuration(storage, directory)
-    count = len({s.sample_id for s in samples})
+    if factual_judge is not None:
+        custom_config = factual_judge.configuration()
+        from .dataset import canonical_bytes
+        configuration.custom_factual_configuration = custom_config
+        configuration.configuration_sha256 = digest(canonical_bytes({'ragas_configuration_sha256': configuration.configuration_sha256,
+                                                                      'custom_factual_configuration': custom_config}))
+        storage.write_json(directory, 'custom_factual_configuration.json', SnapshotPayload(data=custom_config))
+    sample_ids = {s.sample_id for s in samples}
+    if factual_judge is not None:
+        sample_ids.update(s['sample_id'] for s in stage_package['samples'])
+    count = len(sample_ids)
     manifest = EvaluationManifest(evaluation_id=evaluation_id, run_id=run_id,
                                   previous_evaluation_id=previous_evaluation_id, resume_reason=resume_reason,
                                   mode=stage_package['mode'] if stage_package else 'end_to_end', dataset_version=dataset_version,
@@ -287,8 +313,36 @@ async def evaluate_inputs(storage: EvaluationStorage, run_id: str, samples: list
                                                       SnapshotPayload(data=trace.raw_response))
         storage.append_jsonl(directory, 'ragas_traces.jsonl', trace)
         results.append(result)
+    custom_assessments, custom_summaries = [], []
+    if factual_judge is not None:
+        from .factual import evaluate_custom, paired_results
+        try:
+            custom_assessments, custom_summaries = evaluate_custom(stage_package, reference_dataset_directory, factual_judge,
+                                                                  evaluation_id, allow_synthetic=allow_synthetic)
+        except Exception as failure:
+            from .recording import error_record
+            event('failure', details={'scope': 'custom_factual', 'reason': str(failure)})
+            values = manifest.model_dump(mode='json')
+            values.update(quality_evaluation_status='failed', ended_at=now(), error=error_record(failure))
+            storage.update_manifest(directory, 'evaluation.json', EvaluationManifest.model_validate(values))
+            storage.freeze(directory)
+            raise
+        storage.write_json(directory, 'independent_reference_dataset.json', SnapshotPayload(data=independent_dataset.model_dump(mode='json')))
+        source_snapshots = []
+        for source in independent_dataset.sources:
+            ref = storage.write_bytes(directory, identifier('independent_source') + '.txt',
+                independent_source_bytes[source.source_id], media_type='text/plain')
+            source_snapshots.append({'source_id': source.source_id, 'original_snapshot': source.snapshot.model_dump(mode='json'),
+                                     'archived_snapshot': ref.model_dump(mode='json')})
+        storage.write_json(directory, 'independent_sources.json', SnapshotPayload(data=source_snapshots))
+        for assessment in custom_assessments:
+            storage.append_jsonl(directory, 'fact_assessments.jsonl', assessment)
+        storage.write_json(directory, 'custom_factual_metrics.json', SnapshotPayload(data=custom_summaries))
+        for row in paired_results(stage_package, samples, results, custom_summaries):
+            storage.append_jsonl(directory, 'factual_sample_results.jsonl', SnapshotPayload(data=row))
+    custom_by_sample = {s['key']: s for s in custom_summaries if s['scope'] == 'sample'}
     complete = sum(all(r.evaluation_status in {'completed', 'not_applicable'} for r in results if r.sample_id == sid)
-                   for sid in {s.sample_id for s in samples})
+                   and (sid not in custom_by_sample or custom_by_sample[sid]['status'] in {'completed', 'not_applicable'}) for sid in sample_ids)
     values = manifest.model_dump(mode='json')
     storage.write_json(directory, 'metrics.json', MetricsRecord(run_id=run_id, evaluation_id=evaluation_id,
         scope='run', sample_count=count, ragas_results=results))
