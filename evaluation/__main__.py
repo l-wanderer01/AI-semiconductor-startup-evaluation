@@ -14,6 +14,8 @@ def main():
     sub = parser.add_subparsers(dest='command', required=True)
     validate = sub.add_parser('validate')
     validate.add_argument('run_directory', type=Path)
+    rules = sub.add_parser('rules', help='#26 결정론적 규칙 재검사 (원본 읽기 전용)')
+    rules.add_argument('run_directory', type=Path)
     evaluate = sub.add_parser('evaluate')
     evaluate.add_argument('run_directory', type=Path)
     inputs = evaluate.add_mutually_exclusive_group(required=True)
@@ -35,6 +37,16 @@ def main():
     evaluate.add_argument('--resume-reason')
     args = parser.parse_args()
     directory = args.run_directory.resolve()
+    if args.command == 'rules':
+        from .rule_cli import replay
+        try:
+            result = replay(directory)
+        except (ValueError, OSError, KeyError) as exc:
+            print(json.dumps({'error': str(exc)}, ensure_ascii=False))
+            raise SystemExit(2)
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        statuses = [c['status'] for c in result['checks']]
+        raise SystemExit(2 if 'error' in statuses else 1 if 'fail' in statuses else 0)
     if args.command == 'validate':
         errors = validate_run(directory)
         print(json.dumps({'valid': not errors, 'errors': errors}, ensure_ascii=False, indent=2))

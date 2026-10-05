@@ -380,9 +380,18 @@ class RunRecorder:
         # 품질 평가는 아직 실행하지 않았다. 빈 기록을 정상 점수로 대체하지 않는다.
         self.storage.write_text(self.directory, 'claims.jsonl', '', media_type='application/x-ndjson')
         checks = check_workflow(self, workflow, result)
+        from .rules import check_recorded_run, load_spec
+        rule_checks, rule_summary = check_recorded_run(self, result)
+        policy_ref = self.storage.write_snapshot(self.directory, 'rule_policy.json', SnapshotPayload(data=load_spec()))
+        rule_summary['policy_snapshot'] = policy_ref.model_dump(mode='json')
+        checks_ref = self.storage.write_snapshot(self.directory, 'checks.json', checks + rule_checks)
+        rule_summary['source_snapshots'].append(checks_ref.model_dump(mode='json'))
+        self.storage.write_json(self.directory, 'rule_conformance.json', SnapshotPayload(data=rule_summary))
         self.storage.write_json(self.directory, 'additional_research.json', self.research)
-        self.storage.write_json(self.directory, 'checks.json', checks)
-        self.storage.write_json(self.directory, 'metrics.json', MetricsRecord(run_id=self.run_id, scope='run'))
+        from .models import CheckCounts
+        baseline_counts = rule_summary['policies'][f'{self.path}-baseline-v1']['counts']
+        self.storage.write_json(self.directory, 'metrics.json', MetricsRecord(
+            run_id=self.run_id, scope='run', rule_counts=CheckCounts.model_validate(baseline_counts)))
         self.event('failure' if exc else 'end', error=error_record(exc) if exc else None,
                    details={'scope': 'run'})
         values = self.manifest.model_dump(mode='json')
@@ -430,6 +439,15 @@ def traced(operation=None, *, kind='function'):
                 if isinstance(value, dict) and 'selected_company_context_state' in value:
                     company = value['selected_company_context_state'].name
             with recorder.span(name, inputs, kind=kind, company=company) as span:
+                if (name == 'decision' and recorder.path == 'investment_pipeline'
+                        and not (recorder.directory / 'scoring_policy_observed.json').exists()):
+                    from investment_pipeline.scoring import STAGE_WEIGHTS
+                    from investment_pipeline.config import settings
+                    recorder.snapshot('scoring_policy_observed.json', {
+                        'weights': STAGE_WEIGHTS,
+                        'settings': {'selective_dd_threshold': settings.selective_dd_threshold,
+                                     'high_priority_threshold': settings.high_priority_threshold},
+                    })
                 result = function(*args, **kwargs)
                 span['output'] = json_value(result)
                 if name in {'_search_company', '_search_market'}:

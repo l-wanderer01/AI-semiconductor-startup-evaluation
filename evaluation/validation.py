@@ -3,7 +3,7 @@ import hashlib
 import json
 from pathlib import Path
 
-from .models import AgentOutputRecord, DeliveredContext, EvidenceRecord, EventRecord, InvocationRecord, RetrievalRecord, RunManifest
+from .models import AgentOutputRecord, DeliveredContext, EvidenceRecord, EventRecord, InvocationRecord, RetrievalRecord, RunManifest, RuleCheckResult, SnapshotRef
 
 
 def validate_run(directory: Path) -> list[str]:
@@ -42,6 +42,17 @@ def validate_run(directory: Path) -> list[str]:
             errors.append('snapshot hash mismatch: ' + ref.path)
     snapshot(manifest.input_snapshot)
     snapshot(manifest.evidence_snapshot)
+    rule_summary = directory / 'rule_conformance.json'
+    if rule_summary.is_file():
+        summary = json.loads(rule_summary.read_text())['data']
+        for ref in summary.get('source_snapshots', []) + [summary['policy_snapshot']]:
+            snapshot(SnapshotRef.model_validate(ref))
+        for value in json.loads((directory / 'checks.json').read_text()):
+            value.pop('status', None)
+            check = RuleCheckResult.model_validate(value)
+            if check.run_id != manifest.run_id:
+                errors.append('rule check scope mismatch')
+            require(check.invocation_id, invocation_ids, 'rule invocation')
     for r in invocations:
         if r.run_id != manifest.run_id or r.evaluation_id is not None:
             errors.append('invocation scope mismatch: ' + r.invocation_id)
@@ -109,7 +120,6 @@ def validate_run(directory: Path) -> list[str]:
             current = by_id.get(current.parent_invocation_id)
     for artifact in manifest.artifacts:
         if artifact.status == 'saved':
-            from .models import SnapshotRef
             snapshot(SnapshotRef(path=artifact.path, sha256=artifact.sha256))
     return errors
 

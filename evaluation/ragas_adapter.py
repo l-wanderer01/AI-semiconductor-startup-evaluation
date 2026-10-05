@@ -242,8 +242,23 @@ async def evaluate_inputs(storage: EvaluationStorage, run_id: str, samples: list
             (run_directory / 'evaluations' / previous_evaluation_id / 'evaluation.json').read_text())
         if previous.run_id != run_id:
             raise ValueError('previous evaluation belongs to a different run')
+    # Rule conformance is preserved beside RAGAS, never averaged into an LLM score.
+    rule_source = run_directory / 'rule_conformance.json'
+    if rule_source.is_file():
+        from .validation import validate_run
+        rule_errors = validate_run(run_directory)
+        if rule_errors:
+            raise ValueError('generation rule sources failed integrity checks: ' + '; '.join(rule_errors))
     evaluation_id = identifier('evaluation')
     directory = storage.create_evaluation(run_id, evaluation_id)
+    if rule_source.is_file():
+        storage.write_json(directory, 'rule_conformance.json', SnapshotPayload(data={
+            'run_id': run_id, 'evaluation_id': evaluation_id,
+            'generation_summary_sha256': digest(rule_source.read_bytes()),
+            'generation_checks_sha256': digest((run_directory / 'checks.json').read_bytes()),
+            'generation_summary': json.loads(rule_source.read_text())['data'],
+            'ragas_combined': False,
+        }))
     configuration = adapter.configuration(storage, directory)
     if factual_judge is not None:
         custom_config = factual_judge.configuration()

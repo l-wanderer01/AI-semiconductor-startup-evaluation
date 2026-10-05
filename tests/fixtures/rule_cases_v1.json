@@ -1,0 +1,17 @@
+{
+  "version": "rule-cases-v1",
+  "unequal_market_traction": [
+    {"stage": "Seed", "baseline_total": 60, "target_total": 68, "baseline_market": 18, "target_market": 26},
+    {"stage": "Series A", "baseline_total": 60, "target_total": 62, "baseline_market": 21, "target_market": 23},
+    {"stage": "Series B", "baseline_total": 60, "target_total": 58, "baseline_market": 27, "target_market": 25},
+    {"stage": "Series C+", "baseline_total": 60, "target_total": 56, "baseline_market": 24, "target_market": 20}
+  ],
+  "boundaries": [
+    {"score": 49, "grade": "No DD", "selected": false},
+    {"score": 50, "grade": "Watchlist", "selected": false},
+    {"score": 64, "grade": "Watchlist", "selected": false},
+    {"score": 65, "grade": "Selective DD", "selected": true},
+    {"score": 79, "grade": "Selective DD", "selected": true},
+    {"score": 80, "grade": "High Priority DD", "selected": true}
+  ]
+}
