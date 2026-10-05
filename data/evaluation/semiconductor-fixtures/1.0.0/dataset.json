@@ -1,0 +1,1318 @@
+{
+  "schema_version": "0.2.0",
+  "purpose": "synthetic_fixture",
+  "status": "released",
+  "manifest": {
+    "dataset_id": "semiconductor-fixtures",
+    "version": "1.0.0",
+    "sha256": "10e94ade992a310daf68efb3a6dc4228c6d962b0254a334e8f728d106f09586f",
+    "created_at": "2026-10-05T04:42:11Z",
+    "reviewers": [
+      "fixture-author:Codex"
+    ],
+    "cases": [
+      {
+        "case_id": "fixture_currency",
+        "company_id": "FixtureChip",
+        "section_id": "business",
+        "as_of_date": "2026-10-05",
+        "user_input": "다음 가상 자료에 한정하여 FixtureChip의 currency 내용을 설명하라.",
+        "evidence_snapshot": {
+          "path": "evidence/fixture_currency.json",
+          "sha256": "8c87e7efe0fb041accff0e3fa14e8b4a78d39a2e9ae5dbfe36bfd01fe8e2c519",
+          "schema_version": null,
+          "media_type": "application/json"
+        },
+        "reference_snapshot": {
+          "path": "references/fixture_currency.json",
+          "sha256": "b1bed36acd7ca9c47a4b35cb2f043884e6635e68268eaafd0187c0a39ee18c19",
+          "schema_version": null,
+          "media_type": "application/json"
+        },
+        "reference_ids": [
+          "reference_fixture_currency_1"
+        ],
+        "required_item_ids": [
+          "required_fixture_currency_1"
+        ],
+        "supported_metrics": [
+          "factual_precision",
+          "factual_recall",
+          "faithfulness",
+          "context_recall",
+          "context_precision"
+        ]
+      },
+      {
+        "case_id": "fixture_time",
+        "company_id": "FixtureChip",
+        "section_id": "business",
+        "as_of_date": "2026-10-05",
+        "user_input": "다음 가상 자료에 한정하여 FixtureChip의 time 내용을 설명하라.",
+        "evidence_snapshot": {
+          "path": "evidence/fixture_time.json",
+          "sha256": "aa3ecf89ce480dbb7cadd239667a4e7797c2ac29f690453e75def6072a0e1cec",
+          "schema_version": null,
+          "media_type": "application/json"
+        },
+        "reference_snapshot": {
+          "path": "references/fixture_time.json",
+          "sha256": "63f4b01ad2eaa71b36bd10481e70343601f33eb521e9261d9dc58742cd7ac674",
+          "schema_version": null,
+          "media_type": "application/json"
+        },
+        "reference_ids": [
+          "reference_fixture_time_1"
+        ],
+        "required_item_ids": [
+          "required_fixture_time_1"
+        ],
+        "supported_metrics": [
+          "factual_precision",
+          "factual_recall",
+          "faithfulness",
+          "context_recall",
+          "context_precision"
+        ]
+      },
+      {
+        "case_id": "fixture_poc",
+        "company_id": "FixtureChip",
+        "section_id": "traction",
+        "as_of_date": "2026-10-05",
+        "user_input": "다음 가상 자료에 한정하여 FixtureChip의 poc 내용을 설명하라.",
+        "evidence_snapshot": {
+          "path": "evidence/fixture_poc.json",
+          "sha256": "eecdd2135daf09ccd73e1ce590987a447cfc0a799d0186a877a487de9f79c1a7",
+          "schema_version": null,
+          "media_type": "application/json"
+        },
+        "reference_snapshot": {
+          "path": "references/fixture_poc.json",
+          "sha256": "00fbf8fb11b03cb600b07f913729a4f62bccd5a0b88bfba36266a4ca45d0d497",
+          "schema_version": null,
+          "media_type": "application/json"
+        },
+        "reference_ids": [
+          "reference_fixture_poc_1",
+          "reference_fixture_poc_2"
+        ],
+        "required_item_ids": [
+          "required_fixture_poc_1",
+          "required_fixture_poc_2"
+        ],
+        "supported_metrics": [
+          "factual_precision",
+          "factual_recall",
+          "faithfulness",
+          "context_recall",
+          "context_precision"
+        ]
+      },
+      {
+        "case_id": "fixture_benchmark",
+        "company_id": "FixtureChip",
+        "section_id": "technology",
+        "as_of_date": "2026-10-05",
+        "user_input": "다음 가상 자료에 한정하여 FixtureChip의 benchmark 내용을 설명하라.",
+        "evidence_snapshot": {
+          "path": "evidence/fixture_benchmark.json",
+          "sha256": "6715a027a9bf597f8ce91ed2758fb6d166844de33432b70c5fbb3f6e9e8d0f30",
+          "schema_version": null,
+          "media_type": "application/json"
+        },
+        "reference_snapshot": {
+          "path": "references/fixture_benchmark.json",
+          "sha256": "ba742529743decb515f879ed23cc2407e516a0f11dba18bde865ee19a198477f",
+          "schema_version": null,
+          "media_type": "application/json"
+        },
+        "reference_ids": [
+          "reference_fixture_benchmark_1"
+        ],
+        "required_item_ids": [
+          "required_fixture_benchmark_1"
+        ],
+        "supported_metrics": [
+          "factual_precision",
+          "factual_recall",
+          "faithfulness",
+          "context_recall",
+          "context_precision"
+        ]
+      },
+      {
+        "case_id": "fixture_unknown",
+        "company_id": "FixtureChip",
+        "section_id": "business",
+        "as_of_date": "2026-10-05",
+        "user_input": "다음 가상 자료에 한정하여 FixtureChip의 unknown 내용을 설명하라.",
+        "evidence_snapshot": {
+          "path": "evidence/fixture_unknown.json",
+          "sha256": "a62db8dd57aa2ebd9a85b5f51dcd4919f92c85fd9b690e8e0b1659f4e910213c",
+          "schema_version": null,
+          "media_type": "application/json"
+        },
+        "reference_snapshot": {
+          "path": "references/fixture_unknown.json",
+          "sha256": "74b3a971ba14c83198b3e336d48802b578c97e0d451ccdb80f9548674d11cad0",
+          "schema_version": null,
+          "media_type": "application/json"
+        },
+        "reference_ids": [
+          "reference_fixture_unknown_1",
+          "reference_fixture_unknown_2"
+        ],
+        "required_item_ids": [
+          "required_fixture_unknown_1",
+          "required_fixture_unknown_2"
+        ],
+        "supported_metrics": [
+          "factual_precision",
+          "factual_recall",
+          "faithfulness",
+          "context_recall",
+          "context_precision"
+        ]
+      },
+      {
+        "case_id": "fixture_recommend",
+        "company_id": "FixtureChip",
+        "section_id": "ranking",
+        "as_of_date": "2026-10-05",
+        "user_input": "다음 가상 자료에 한정하여 FixtureChip의 recommend 내용을 설명하라.",
+        "evidence_snapshot": {
+          "path": "evidence/fixture_recommend.json",
+          "sha256": "1cd5034d095813e12f9d5903f4ef3f9765b8a2f3f455c423437607a8235d9e28",
+          "schema_version": null,
+          "media_type": "application/json"
+        },
+        "reference_snapshot": {
+          "path": "references/fixture_recommend.json",
+          "sha256": "8518c345196cb715eb40e45edbebcc018f9d157276e839610e8acbd15a0cbe77",
+          "schema_version": null,
+          "media_type": "application/json"
+        },
+        "reference_ids": [
+          "reference_fixture_recommend_1"
+        ],
+        "required_item_ids": [
+          "required_fixture_recommend_1"
+        ],
+        "supported_metrics": [
+          "factual_precision",
+          "factual_recall",
+          "faithfulness",
+          "context_recall",
+          "context_precision"
+        ]
+      },
+      {
+        "case_id": "fixture_hold",
+        "company_id": "FixtureChip",
+        "section_id": "ranking",
+        "as_of_date": "2026-10-05",
+        "user_input": "다음 가상 자료에 한정하여 FixtureChip의 hold 내용을 설명하라.",
+        "evidence_snapshot": {
+          "path": "evidence/fixture_hold.json",
+          "sha256": "a87dde07e6c1f12ce2d07bb397192195411c15a01259962565ebd6de4f773a7b",
+          "schema_version": null,
+          "media_type": "application/json"
+        },
+        "reference_snapshot": {
+          "path": "references/fixture_hold.json",
+          "sha256": "6081368c258ad8407f77f914e88a6bbcce86c33eaa08b014ca1031ef16358dd2",
+          "schema_version": null,
+          "media_type": "application/json"
+        },
+        "reference_ids": [
+          "reference_fixture_hold_1"
+        ],
+        "required_item_ids": [
+          "required_fixture_hold_1"
+        ],
+        "supported_metrics": [
+          "factual_precision",
+          "factual_recall",
+          "faithfulness",
+          "context_recall",
+          "context_precision"
+        ]
+      },
+      {
+        "case_id": "fixture_market",
+        "company_id": "FixtureChip",
+        "section_id": "market",
+        "as_of_date": "2026-10-05",
+        "user_input": "다음 가상 자료에 한정하여 FixtureChip의 market 내용을 설명하라.",
+        "evidence_snapshot": {
+          "path": "evidence/fixture_market.json",
+          "sha256": "946bbf6865eed0a805747a06591533be28577d7510b1d4b82f96f9e3d4feb7ba",
+          "schema_version": null,
+          "media_type": "application/json"
+        },
+        "reference_snapshot": {
+          "path": "references/fixture_market.json",
+          "sha256": "9d66bc861c77b0182190b216ee595685758739f4e27e8b2822e742c56a1df212",
+          "schema_version": null,
+          "media_type": "application/json"
+        },
+        "reference_ids": [
+          "reference_fixture_market_1"
+        ],
+        "required_item_ids": [
+          "required_fixture_market_1",
+          "required_fixture_market_2025_excluded"
+        ],
+        "supported_metrics": [
+          "factual_precision",
+          "factual_recall",
+          "faithfulness",
+          "context_recall",
+          "context_precision"
+        ]
+      }
+    ]
+  },
+  "sources": [
+    {
+      "source_id": "source_fixture_currency",
+      "company_ids": [
+        "FixtureChip"
+      ],
+      "title": "Codex가 작성한 가상 검증 원문: currency",
+      "url": null,
+      "published_date": "2024-08-05",
+      "collected_at": "2026-10-05T04:42:11Z",
+      "snapshot": {
+        "path": "sources/fixture_currency.txt",
+        "sha256": "83b22b8881f195989b1375d1d0ffa53bf8bbc58b35312328bd21d06496dd2bd1",
+        "schema_version": null,
+        "media_type": "text/plain"
+      },
+      "snapshot_kind": "synthetic_fixture",
+      "provenance": "synthetic_fixture",
+      "original_locator": "전체 가상 원문 (외부 기업 자료 아님)"
+    },
+    {
+      "source_id": "source_fixture_time",
+      "company_ids": [
+        "FixtureChip"
+      ],
+      "title": "Codex가 작성한 가상 검증 원문: time",
+      "url": null,
+      "published_date": "2024-08-05",
+      "collected_at": "2026-10-05T04:42:11Z",
+      "snapshot": {
+        "path": "sources/fixture_time.txt",
+        "sha256": "67a4f27bb97e6de2b346ca5d3eb119eb7c6116141791c10a71154b6248bab9c6",
+        "schema_version": null,
+        "media_type": "text/plain"
+      },
+      "snapshot_kind": "synthetic_fixture",
+      "provenance": "synthetic_fixture",
+      "original_locator": "전체 가상 원문 (외부 기업 자료 아님)"
+    },
+    {
+      "source_id": "source_fixture_poc",
+      "company_ids": [
+        "FixtureChip"
+      ],
+      "title": "Codex가 작성한 가상 검증 원문: poc",
+      "url": null,
+      "published_date": "2024-08-05",
+      "collected_at": "2026-10-05T04:42:11Z",
+      "snapshot": {
+        "path": "sources/fixture_poc.txt",
+        "sha256": "684823fbf149d8fc0a210cfbf944caf4b47d0db271d9714c482862daea805d83",
+        "schema_version": null,
+        "media_type": "text/plain"
+      },
+      "snapshot_kind": "synthetic_fixture",
+      "provenance": "synthetic_fixture",
+      "original_locator": "전체 가상 원문 (외부 기업 자료 아님)"
+    },
+    {
+      "source_id": "source_fixture_benchmark",
+      "company_ids": [
+        "FixtureChip"
+      ],
+      "title": "Codex가 작성한 가상 검증 원문: benchmark",
+      "url": null,
+      "published_date": "2024-08-05",
+      "collected_at": "2026-10-05T04:42:11Z",
+      "snapshot": {
+        "path": "sources/fixture_benchmark.txt",
+        "sha256": "9e5e3c2594b34427ea8f8db876cd4c0b28562959b8450b98283ea1856ccc4bda",
+        "schema_version": null,
+        "media_type": "text/plain"
+      },
+      "snapshot_kind": "synthetic_fixture",
+      "provenance": "synthetic_fixture",
+      "original_locator": "전체 가상 원문 (외부 기업 자료 아님)"
+    },
+    {
+      "source_id": "source_fixture_unknown",
+      "company_ids": [
+        "FixtureChip"
+      ],
+      "title": "Codex가 작성한 가상 검증 원문: unknown",
+      "url": null,
+      "published_date": "2024-08-05",
+      "collected_at": "2026-10-05T04:42:11Z",
+      "snapshot": {
+        "path": "sources/fixture_unknown.txt",
+        "sha256": "12073b86c90eb426bc95717ba6169925fafbfc53e53a5740baa8326aad217c32",
+        "schema_version": null,
+        "media_type": "text/plain"
+      },
+      "snapshot_kind": "synthetic_fixture",
+      "provenance": "synthetic_fixture",
+      "original_locator": "전체 가상 원문 (외부 기업 자료 아님)"
+    },
+    {
+      "source_id": "source_fixture_recommend",
+      "company_ids": [
+        "FixtureChip"
+      ],
+      "title": "Codex가 작성한 가상 검증 원문: recommend",
+      "url": null,
+      "published_date": "2024-08-05",
+      "collected_at": "2026-10-05T04:42:11Z",
+      "snapshot": {
+        "path": "sources/fixture_recommend.txt",
+        "sha256": "6476d884f967b098d6f16dfd362baa46370021c3b0af17274bfa60bcd69d2013",
+        "schema_version": null,
+        "media_type": "text/plain"
+      },
+      "snapshot_kind": "synthetic_fixture",
+      "provenance": "synthetic_fixture",
+      "original_locator": "전체 가상 원문 (외부 기업 자료 아님)"
+    },
+    {
+      "source_id": "source_fixture_hold",
+      "company_ids": [
+        "FixtureChip"
+      ],
+      "title": "Codex가 작성한 가상 검증 원문: hold",
+      "url": null,
+      "published_date": "2024-08-05",
+      "collected_at": "2026-10-05T04:42:11Z",
+      "snapshot": {
+        "path": "sources/fixture_hold.txt",
+        "sha256": "f2a354d4b806aa0dfba7dfef5a7b3ac3d0d6e30410ee53bfd773b4193419857e",
+        "schema_version": null,
+        "media_type": "text/plain"
+      },
+      "snapshot_kind": "synthetic_fixture",
+      "provenance": "synthetic_fixture",
+      "original_locator": "전체 가상 원문 (외부 기업 자료 아님)"
+    },
+    {
+      "source_id": "source_fixture_market",
+      "company_ids": [
+        "FixtureChip"
+      ],
+      "title": "Codex가 작성한 가상 검증 원문: market",
+      "url": null,
+      "published_date": "2024-08-05",
+      "collected_at": "2026-10-05T04:42:11Z",
+      "snapshot": {
+        "path": "sources/fixture_market.txt",
+        "sha256": "e8a38ff5b36e9da964e15abb4c1ad7eeb5474a89a0a855593426e1fc53fd9c46",
+        "schema_version": null,
+        "media_type": "text/plain"
+      },
+      "snapshot_kind": "synthetic_fixture",
+      "provenance": "synthetic_fixture",
+      "original_locator": "전체 가상 원문 (외부 기업 자료 아님)"
+    }
+  ],
+  "facts": [
+    {
+      "fact_id": "fact_fixture_currency_1",
+      "reference_id": "reference_fixture_currency_1",
+      "company_id": "FixtureChip",
+      "section_id": "business",
+      "statement": "FixtureChip은 2024년 8월 5일 Series A에서 USD 640,000,000을 조달했다.",
+      "value": 640000000,
+      "unit": "USD",
+      "conditions": [
+        "해당 라운드"
+      ],
+      "as_of_date": "2026-10-05",
+      "source_ids": [
+        "source_fixture_currency"
+      ],
+      "source_locations": [
+        {
+          "snapshot": {
+            "path": "sources/fixture_currency.txt",
+            "sha256": "83b22b8881f195989b1375d1d0ffa53bf8bbc58b35312328bd21d06496dd2bd1",
+            "schema_version": null,
+            "media_type": "text/plain"
+          },
+          "start_offset": 0,
+          "end_offset": 59,
+          "quote": "가상기업 FixtureChip은 2024-08-05 Series A에서 6억 4천만 미국 달러를 조달했다."
+        }
+      ],
+      "critical": true,
+      "required_item_ids": [
+        "required_fixture_currency_1"
+      ],
+      "review_status": "verified",
+      "reviewer": "fixture-author:Codex",
+      "reviewed_at": "2026-10-05T04:42:11Z",
+      "category": "funding",
+      "source_as_of_date": "2024-08-05",
+      "review_kind": "synthetic_fixture"
+    },
+    {
+      "fact_id": "fact_fixture_time_1",
+      "reference_id": "reference_fixture_time_1",
+      "company_id": "FixtureChip",
+      "section_id": "business",
+      "statement": "FixtureChip의 2024년 8월 5일 라운드는 Series A이며 2023년 라운드는 Seed였다.",
+      "value": "Series A",
+      "unit": null,
+      "conditions": [
+        "2024-08-05 사건"
+      ],
+      "as_of_date": "2026-10-05",
+      "source_ids": [
+        "source_fixture_time"
+      ],
+      "source_locations": [
+        {
+          "snapshot": {
+            "path": "sources/fixture_time.txt",
+            "sha256": "67a4f27bb97e6de2b346ca5d3eb119eb7c6116141791c10a71154b6248bab9c6",
+            "schema_version": null,
+            "media_type": "text/plain"
+          },
+          "start_offset": 0,
+          "end_offset": 63,
+          "quote": "가상기업 FixtureChip은 2023년 Seed, 2024-08-05 Series A 투자 라운드를 완료했다."
+        }
+      ],
+      "critical": true,
+      "required_item_ids": [
+        "required_fixture_time_1"
+      ],
+      "review_status": "verified",
+      "reviewer": "fixture-author:Codex",
+      "reviewed_at": "2026-10-05T04:42:11Z",
+      "category": "stage",
+      "source_as_of_date": "2024-08-05",
+      "review_kind": "synthetic_fixture"
+    },
+    {
+      "fact_id": "fact_fixture_poc_1",
+      "reference_id": "reference_fixture_poc_1",
+      "company_id": "FixtureChip",
+      "section_id": "traction",
+      "statement": "FixtureChip은 고객 2곳과 PoC 중이며 유료 계약 미체결 및 양산 전이다.",
+      "value": "PoC",
+      "unit": null,
+      "conditions": [
+        "고객 수는 PoC 참여 수",
+        "유료 고객 수가 아님"
+      ],
+      "as_of_date": "2026-10-05",
+      "source_ids": [
+        "source_fixture_poc"
+      ],
+      "source_locations": [
+        {
+          "snapshot": {
+            "path": "sources/fixture_poc.txt",
+            "sha256": "684823fbf149d8fc0a210cfbf944caf4b47d0db271d9714c482862daea805d83",
+            "schema_version": null,
+            "media_type": "text/plain"
+          },
+          "start_offset": 0,
+          "end_offset": 61,
+          "quote": "가상기업 FixtureChip은 고객 2곳과 PoC 진행 중이다. 유료 계약은 체결하지 않았으며 양산 전이다."
+        }
+      ],
+      "critical": true,
+      "required_item_ids": [
+        "required_fixture_poc_1"
+      ],
+      "review_status": "verified",
+      "reviewer": "fixture-author:Codex",
+      "reviewed_at": "2026-10-05T04:42:11Z",
+      "category": "commercial_status",
+      "source_as_of_date": "2024-08-05",
+      "review_kind": "synthetic_fixture"
+    },
+    {
+      "fact_id": "fact_fixture_poc_2",
+      "reference_id": "reference_fixture_poc_2",
+      "company_id": "FixtureChip",
+      "section_id": "traction",
+      "statement": "FixtureChip의 PoC 참여 고객은 2곳이다.",
+      "value": 2,
+      "unit": "companies",
+      "conditions": [
+        "PoC"
+      ],
+      "as_of_date": "2026-10-05",
+      "source_ids": [
+        "source_fixture_poc"
+      ],
+      "source_locations": [
+        {
+          "snapshot": {
+            "path": "sources/fixture_poc.txt",
+            "sha256": "684823fbf149d8fc0a210cfbf944caf4b47d0db271d9714c482862daea805d83",
+            "schema_version": null,
+            "media_type": "text/plain"
+          },
+          "start_offset": 0,
+          "end_offset": 61,
+          "quote": "가상기업 FixtureChip은 고객 2곳과 PoC 진행 중이다. 유료 계약은 체결하지 않았으며 양산 전이다."
+        }
+      ],
+      "critical": true,
+      "required_item_ids": [
+        "required_fixture_poc_2"
+      ],
+      "review_status": "verified",
+      "reviewer": "fixture-author:Codex",
+      "reviewed_at": "2026-10-05T04:42:11Z",
+      "category": "customers",
+      "source_as_of_date": "2024-08-05",
+      "review_kind": "synthetic_fixture"
+    },
+    {
+      "fact_id": "fact_fixture_benchmark_1",
+      "reference_id": "reference_fixture_benchmark_1",
+      "company_id": "FixtureChip",
+      "section_id": "technology",
+      "statement": "FixtureChip의 자체 시험에서 ResNet-50 INT8 batch=1, 동일 전력 10W 조건으로 비교기 A 대비 처리량이 2배였다.",
+      "value": 2,
+      "unit": "ratio",
+      "conditions": [
+        "ResNet-50",
+        "INT8",
+        "batch=1",
+        "10W",
+        "비교기 A",
+        "자체 시험"
+      ],
+      "as_of_date": "2026-10-05",
+      "source_ids": [
+        "source_fixture_benchmark"
+      ],
+      "source_locations": [
+        {
+          "snapshot": {
+            "path": "sources/fixture_benchmark.txt",
+            "sha256": "9e5e3c2594b34427ea8f8db876cd4c0b28562959b8450b98283ea1856ccc4bda",
+            "schema_version": null,
+            "media_type": "text/plain"
+          },
+          "start_offset": 0,
+          "end_offset": 96,
+          "quote": "가상기업 FixtureChip 내부 시험: ResNet-50 INT8 batch=1, 동일 전력 10W에서 비교기 A 대비 처리량 2배. LLM 또는 FP16 측정은 없음."
+        }
+      ],
+      "critical": true,
+      "required_item_ids": [
+        "required_fixture_benchmark_1"
+      ],
+      "review_status": "verified",
+      "reviewer": "fixture-author:Codex",
+      "reviewed_at": "2026-10-05T04:42:11Z",
+      "category": "benchmark",
+      "source_as_of_date": "2024-08-05",
+      "review_kind": "synthetic_fixture"
+    },
+    {
+      "fact_id": "fact_fixture_unknown_1",
+      "reference_id": "reference_fixture_unknown_1",
+      "company_id": "FixtureChip",
+      "section_id": "business",
+      "statement": "제공된 FixtureChip 자료로는 매출을 확인할 수 없다.",
+      "value": null,
+      "unit": "KRW",
+      "conditions": [
+        "제공된 자료 범위만 의미함"
+      ],
+      "as_of_date": "2026-10-05",
+      "source_ids": [
+        "source_fixture_unknown"
+      ],
+      "source_locations": [
+        {
+          "snapshot": {
+            "path": "sources/fixture_unknown.txt",
+            "sha256": "12073b86c90eb426bc95717ba6169925fafbfc53e53a5740baa8326aad217c32",
+            "schema_version": null,
+            "media_type": "text/plain"
+          },
+          "start_offset": 0,
+          "end_offset": 47,
+          "quote": "가상기업 FixtureChip 자료에는 매출 및 유료 고객 수가 공개되어 있지 않다."
+        }
+      ],
+      "critical": true,
+      "required_item_ids": [
+        "required_fixture_unknown_1"
+      ],
+      "review_status": "verified",
+      "reviewer": "fixture-author:Codex",
+      "reviewed_at": "2026-10-05T04:42:11Z",
+      "category": "revenue",
+      "source_as_of_date": "2024-08-05",
+      "review_kind": "synthetic_fixture"
+    },
+    {
+      "fact_id": "fact_fixture_unknown_2",
+      "reference_id": "reference_fixture_unknown_2",
+      "company_id": "FixtureChip",
+      "section_id": "business",
+      "statement": "제공된 FixtureChip 자료로는 유료 고객 수를 확인할 수 없다.",
+      "value": null,
+      "unit": "companies",
+      "conditions": [
+        "0명이라는 의미가 아님"
+      ],
+      "as_of_date": "2026-10-05",
+      "source_ids": [
+        "source_fixture_unknown"
+      ],
+      "source_locations": [
+        {
+          "snapshot": {
+            "path": "sources/fixture_unknown.txt",
+            "sha256": "12073b86c90eb426bc95717ba6169925fafbfc53e53a5740baa8326aad217c32",
+            "schema_version": null,
+            "media_type": "text/plain"
+          },
+          "start_offset": 0,
+          "end_offset": 47,
+          "quote": "가상기업 FixtureChip 자료에는 매출 및 유료 고객 수가 공개되어 있지 않다."
+        }
+      ],
+      "critical": true,
+      "required_item_ids": [
+        "required_fixture_unknown_2"
+      ],
+      "review_status": "verified",
+      "reviewer": "fixture-author:Codex",
+      "reviewed_at": "2026-10-05T04:42:11Z",
+      "category": "customers",
+      "source_as_of_date": "2024-08-05",
+      "review_kind": "synthetic_fixture"
+    },
+    {
+      "fact_id": "fact_fixture_recommend_1",
+      "reference_id": "reference_fixture_recommend_1",
+      "company_id": "FixtureChip",
+      "section_id": "ranking",
+      "statement": "가상 정책 시험에서 FixtureChip 점수는 70이고 추천 기준은 65 이상이다.",
+      "value": 70,
+      "unit": "points",
+      "conditions": [
+        "CLI 경로",
+        "실제 기업 투자판단 아님"
+      ],
+      "as_of_date": "2026-10-05",
+      "source_ids": [
+        "source_fixture_recommend"
+      ],
+      "source_locations": [
+        {
+          "snapshot": {
+            "path": "sources/fixture_recommend.txt",
+            "sha256": "6476d884f967b098d6f16dfd362baa46370021c3b0af17274bfa60bcd69d2013",
+            "schema_version": null,
+            "media_type": "text/plain"
+          },
+          "start_offset": 0,
+          "end_offset": 63,
+          "quote": "가상 고정 정책: CLI 가중 점수 65 이상이면 추천 후보. FixtureChip의 확정 시험 점수는 70이다."
+        }
+      ],
+      "critical": true,
+      "required_item_ids": [
+        "required_fixture_recommend_1"
+      ],
+      "review_status": "verified",
+      "reviewer": "fixture-author:Codex",
+      "reviewed_at": "2026-10-05T04:42:11Z",
+      "category": "commercial_status",
+      "source_as_of_date": "2024-08-05",
+      "review_kind": "synthetic_fixture"
+    },
+    {
+      "fact_id": "fact_fixture_hold_1",
+      "reference_id": "reference_fixture_hold_1",
+      "company_id": "FixtureChip",
+      "section_id": "ranking",
+      "statement": "가상 정책 시험에서 FixtureChip 점수는 60이고 추천 기준은 65 이상이다.",
+      "value": 60,
+      "unit": "points",
+      "conditions": [
+        "CLI 경로",
+        "실제 기업 투자판단 아님"
+      ],
+      "as_of_date": "2026-10-05",
+      "source_ids": [
+        "source_fixture_hold"
+      ],
+      "source_locations": [
+        {
+          "snapshot": {
+            "path": "sources/fixture_hold.txt",
+            "sha256": "f2a354d4b806aa0dfba7dfef5a7b3ac3d0d6e30410ee53bfd773b4193419857e",
+            "schema_version": null,
+            "media_type": "text/plain"
+          },
+          "start_offset": 0,
+          "end_offset": 63,
+          "quote": "가상 고정 정책: CLI 가중 점수 65 이상이면 추천 후보. FixtureChip의 확정 시험 점수는 60이다."
+        }
+      ],
+      "critical": true,
+      "required_item_ids": [
+        "required_fixture_hold_1"
+      ],
+      "review_status": "verified",
+      "reviewer": "fixture-author:Codex",
+      "reviewed_at": "2026-10-05T04:42:11Z",
+      "category": "commercial_status",
+      "source_as_of_date": "2024-08-05",
+      "review_kind": "synthetic_fixture"
+    },
+    {
+      "fact_id": "fact_fixture_market_1",
+      "reference_id": "reference_fixture_market_1",
+      "company_id": "FixtureChip",
+      "section_id": "market",
+      "statement": "가상 국내 시장의 2024년 규모는 100억 원이며 제공 자료에 2025년 수치는 없다.",
+      "value": 10000000000,
+      "unit": "KRW",
+      "conditions": [
+        "국내",
+        "2024",
+        "가상 시장"
+      ],
+      "as_of_date": "2026-10-05",
+      "source_ids": [
+        "source_fixture_market"
+      ],
+      "source_locations": [
+        {
+          "snapshot": {
+            "path": "sources/fixture_market.txt",
+            "sha256": "e8a38ff5b36e9da964e15abb4c1ad7eeb5474a89a0a855593426e1fc53fd9c46",
+            "schema_version": null,
+            "media_type": "text/plain"
+          },
+          "start_offset": 0,
+          "end_offset": 53,
+          "quote": "가상 시장 자료: 시험용 국내 시장 규모는 2024년 100억 원이다. 2025년 자료는 없다."
+        }
+      ],
+      "critical": true,
+      "required_item_ids": [
+        "required_fixture_market_1"
+      ],
+      "review_status": "verified",
+      "reviewer": "fixture-author:Codex",
+      "reviewed_at": "2026-10-05T04:42:11Z",
+      "category": "market",
+      "source_as_of_date": "2024-08-05",
+      "review_kind": "synthetic_fixture"
+    }
+  ],
+  "required_items": [
+    {
+      "required_item_id": "required_fixture_currency_1",
+      "version": "1.0.0",
+      "company_id": "FixtureChip",
+      "section_id": "business",
+      "description": "funding: FixtureChip은 2024년 8월 5일 Series A에서 USD 640,000,000을 조달했다.",
+      "accuracy_rule": "수치·단위·통화·하한 표현을 보존하고 PoC/계약/양산과 거래금액/매출을 구분한다.",
+      "freshness_rule": "질문의 사건 시점과 자료 기준일을 명시한다. 과거 라운드를 현재 단계로 일반화하지 않는다.",
+      "evidence_rule": "source_id 및 고정 원문 구간으로 뒷받침하고 비교 조건을 생략하지 않는다.",
+      "applicability_rule": "이 기업·영역·질문 범위에만 적용한다. 다른 기업 또는 전체 투자보고서의 정답으로 사용하지 않는다.",
+      "unknown_information_policy": "원문에 없는 값은 0이나 사실 없음으로 단정하지 않고 미확인이라고 응답한다.",
+      "reference_ids": [
+        "reference_fixture_currency_1"
+      ],
+      "critical": true,
+      "applicability": "applicable",
+      "not_applicable_reason": null,
+      "expected_unknown_response": "제공된 자료로는 해당 수치 또는 상태를 확인할 수 없어 추가 근거가 필요합니다."
+    },
+    {
+      "required_item_id": "required_fixture_time_1",
+      "version": "1.0.0",
+      "company_id": "FixtureChip",
+      "section_id": "business",
+      "description": "stage: FixtureChip의 2024년 8월 5일 라운드는 Series A이며 2023년 라운드는 Seed였다.",
+      "accuracy_rule": "수치·단위·통화·하한 표현을 보존하고 PoC/계약/양산과 거래금액/매출을 구분한다.",
+      "freshness_rule": "질문의 사건 시점과 자료 기준일을 명시한다. 과거 라운드를 현재 단계로 일반화하지 않는다.",
+      "evidence_rule": "source_id 및 고정 원문 구간으로 뒷받침하고 비교 조건을 생략하지 않는다.",
+      "applicability_rule": "이 기업·영역·질문 범위에만 적용한다. 다른 기업 또는 전체 투자보고서의 정답으로 사용하지 않는다.",
+      "unknown_information_policy": "원문에 없는 값은 0이나 사실 없음으로 단정하지 않고 미확인이라고 응답한다.",
+      "reference_ids": [
+        "reference_fixture_time_1"
+      ],
+      "critical": true,
+      "applicability": "applicable",
+      "not_applicable_reason": null,
+      "expected_unknown_response": "제공된 자료로는 해당 수치 또는 상태를 확인할 수 없어 추가 근거가 필요합니다."
+    },
+    {
+      "required_item_id": "required_fixture_poc_1",
+      "version": "1.0.0",
+      "company_id": "FixtureChip",
+      "section_id": "traction",
+      "description": "commercial_status: FixtureChip은 고객 2곳과 PoC 중이며 유료 계약 미체결 및 양산 전이다.",
+      "accuracy_rule": "수치·단위·통화·하한 표현을 보존하고 PoC/계약/양산과 거래금액/매출을 구분한다.",
+      "freshness_rule": "질문의 사건 시점과 자료 기준일을 명시한다. 과거 라운드를 현재 단계로 일반화하지 않는다.",
+      "evidence_rule": "source_id 및 고정 원문 구간으로 뒷받침하고 비교 조건을 생략하지 않는다.",
+      "applicability_rule": "이 기업·영역·질문 범위에만 적용한다. 다른 기업 또는 전체 투자보고서의 정답으로 사용하지 않는다.",
+      "unknown_information_policy": "원문에 없는 값은 0이나 사실 없음으로 단정하지 않고 미확인이라고 응답한다.",
+      "reference_ids": [
+        "reference_fixture_poc_1"
+      ],
+      "critical": true,
+      "applicability": "applicable",
+      "not_applicable_reason": null,
+      "expected_unknown_response": "제공된 자료로는 해당 수치 또는 상태를 확인할 수 없어 추가 근거가 필요합니다."
+    },
+    {
+      "required_item_id": "required_fixture_poc_2",
+      "version": "1.0.0",
+      "company_id": "FixtureChip",
+      "section_id": "traction",
+      "description": "customers: FixtureChip의 PoC 참여 고객은 2곳이다.",
+      "accuracy_rule": "수치·단위·통화·하한 표현을 보존하고 PoC/계약/양산과 거래금액/매출을 구분한다.",
+      "freshness_rule": "질문의 사건 시점과 자료 기준일을 명시한다. 과거 라운드를 현재 단계로 일반화하지 않는다.",
+      "evidence_rule": "source_id 및 고정 원문 구간으로 뒷받침하고 비교 조건을 생략하지 않는다.",
+      "applicability_rule": "이 기업·영역·질문 범위에만 적용한다. 다른 기업 또는 전체 투자보고서의 정답으로 사용하지 않는다.",
+      "unknown_information_policy": "원문에 없는 값은 0이나 사실 없음으로 단정하지 않고 미확인이라고 응답한다.",
+      "reference_ids": [
+        "reference_fixture_poc_2"
+      ],
+      "critical": true,
+      "applicability": "applicable",
+      "not_applicable_reason": null,
+      "expected_unknown_response": "제공된 자료로는 해당 수치 또는 상태를 확인할 수 없어 추가 근거가 필요합니다."
+    },
+    {
+      "required_item_id": "required_fixture_benchmark_1",
+      "version": "1.0.0",
+      "company_id": "FixtureChip",
+      "section_id": "technology",
+      "description": "benchmark: FixtureChip의 자체 시험에서 ResNet-50 INT8 batch=1, 동일 전력 10W 조건으로 비교기 A 대비 처리량이 2배였다.",
+      "accuracy_rule": "수치·단위·통화·하한 표현을 보존하고 PoC/계약/양산과 거래금액/매출을 구분한다.",
+      "freshness_rule": "질문의 사건 시점과 자료 기준일을 명시한다. 과거 라운드를 현재 단계로 일반화하지 않는다.",
+      "evidence_rule": "source_id 및 고정 원문 구간으로 뒷받침하고 비교 조건을 생략하지 않는다.",
+      "applicability_rule": "이 기업·영역·질문 범위에만 적용한다. 다른 기업 또는 전체 투자보고서의 정답으로 사용하지 않는다.",
+      "unknown_information_policy": "원문에 없는 값은 0이나 사실 없음으로 단정하지 않고 미확인이라고 응답한다.",
+      "reference_ids": [
+        "reference_fixture_benchmark_1"
+      ],
+      "critical": true,
+      "applicability": "applicable",
+      "not_applicable_reason": null,
+      "expected_unknown_response": "제공된 자료로는 해당 수치 또는 상태를 확인할 수 없어 추가 근거가 필요합니다."
+    },
+    {
+      "required_item_id": "required_fixture_unknown_1",
+      "version": "1.0.0",
+      "company_id": "FixtureChip",
+      "section_id": "business",
+      "description": "revenue: 제공된 FixtureChip 자료로는 매출을 확인할 수 없다.",
+      "accuracy_rule": "수치·단위·통화·하한 표현을 보존하고 PoC/계약/양산과 거래금액/매출을 구분한다.",
+      "freshness_rule": "질문의 사건 시점과 자료 기준일을 명시한다. 과거 라운드를 현재 단계로 일반화하지 않는다.",
+      "evidence_rule": "source_id 및 고정 원문 구간으로 뒷받침하고 비교 조건을 생략하지 않는다.",
+      "applicability_rule": "이 기업·영역·질문 범위에만 적용한다. 다른 기업 또는 전체 투자보고서의 정답으로 사용하지 않는다.",
+      "unknown_information_policy": "원문에 없는 값은 0이나 사실 없음으로 단정하지 않고 미확인이라고 응답한다.",
+      "reference_ids": [
+        "reference_fixture_unknown_1"
+      ],
+      "critical": true,
+      "applicability": "applicable",
+      "not_applicable_reason": null,
+      "expected_unknown_response": "제공된 자료로는 해당 수치 또는 상태를 확인할 수 없어 추가 근거가 필요합니다."
+    },
+    {
+      "required_item_id": "required_fixture_unknown_2",
+      "version": "1.0.0",
+      "company_id": "FixtureChip",
+      "section_id": "business",
+      "description": "customers: 제공된 FixtureChip 자료로는 유료 고객 수를 확인할 수 없다.",
+      "accuracy_rule": "수치·단위·통화·하한 표현을 보존하고 PoC/계약/양산과 거래금액/매출을 구분한다.",
+      "freshness_rule": "질문의 사건 시점과 자료 기준일을 명시한다. 과거 라운드를 현재 단계로 일반화하지 않는다.",
+      "evidence_rule": "source_id 및 고정 원문 구간으로 뒷받침하고 비교 조건을 생략하지 않는다.",
+      "applicability_rule": "이 기업·영역·질문 범위에만 적용한다. 다른 기업 또는 전체 투자보고서의 정답으로 사용하지 않는다.",
+      "unknown_information_policy": "원문에 없는 값은 0이나 사실 없음으로 단정하지 않고 미확인이라고 응답한다.",
+      "reference_ids": [
+        "reference_fixture_unknown_2"
+      ],
+      "critical": true,
+      "applicability": "applicable",
+      "not_applicable_reason": null,
+      "expected_unknown_response": "제공된 자료로는 해당 수치 또는 상태를 확인할 수 없어 추가 근거가 필요합니다."
+    },
+    {
+      "required_item_id": "required_fixture_recommend_1",
+      "version": "1.0.0",
+      "company_id": "FixtureChip",
+      "section_id": "ranking",
+      "description": "commercial_status: 가상 정책 시험에서 FixtureChip 점수는 70이고 추천 기준은 65 이상이다.",
+      "accuracy_rule": "수치·단위·통화·하한 표현을 보존하고 PoC/계약/양산과 거래금액/매출을 구분한다.",
+      "freshness_rule": "질문의 사건 시점과 자료 기준일을 명시한다. 과거 라운드를 현재 단계로 일반화하지 않는다.",
+      "evidence_rule": "source_id 및 고정 원문 구간으로 뒷받침하고 비교 조건을 생략하지 않는다.",
+      "applicability_rule": "이 기업·영역·질문 범위에만 적용한다. 다른 기업 또는 전체 투자보고서의 정답으로 사용하지 않는다.",
+      "unknown_information_policy": "원문에 없는 값은 0이나 사실 없음으로 단정하지 않고 미확인이라고 응답한다.",
+      "reference_ids": [
+        "reference_fixture_recommend_1"
+      ],
+      "critical": true,
+      "applicability": "applicable",
+      "not_applicable_reason": null,
+      "expected_unknown_response": "제공된 자료로는 해당 수치 또는 상태를 확인할 수 없어 추가 근거가 필요합니다."
+    },
+    {
+      "required_item_id": "required_fixture_hold_1",
+      "version": "1.0.0",
+      "company_id": "FixtureChip",
+      "section_id": "ranking",
+      "description": "commercial_status: 가상 정책 시험에서 FixtureChip 점수는 60이고 추천 기준은 65 이상이다.",
+      "accuracy_rule": "수치·단위·통화·하한 표현을 보존하고 PoC/계약/양산과 거래금액/매출을 구분한다.",
+      "freshness_rule": "질문의 사건 시점과 자료 기준일을 명시한다. 과거 라운드를 현재 단계로 일반화하지 않는다.",
+      "evidence_rule": "source_id 및 고정 원문 구간으로 뒷받침하고 비교 조건을 생략하지 않는다.",
+      "applicability_rule": "이 기업·영역·질문 범위에만 적용한다. 다른 기업 또는 전체 투자보고서의 정답으로 사용하지 않는다.",
+      "unknown_information_policy": "원문에 없는 값은 0이나 사실 없음으로 단정하지 않고 미확인이라고 응답한다.",
+      "reference_ids": [
+        "reference_fixture_hold_1"
+      ],
+      "critical": true,
+      "applicability": "applicable",
+      "not_applicable_reason": null,
+      "expected_unknown_response": "제공된 자료로는 해당 수치 또는 상태를 확인할 수 없어 추가 근거가 필요합니다."
+    },
+    {
+      "required_item_id": "required_fixture_market_1",
+      "version": "1.0.0",
+      "company_id": "FixtureChip",
+      "section_id": "market",
+      "description": "market: 가상 국내 시장의 2024년 규모는 100억 원이며 제공 자료에 2025년 수치는 없다.",
+      "accuracy_rule": "수치·단위·통화·하한 표현을 보존하고 PoC/계약/양산과 거래금액/매출을 구분한다.",
+      "freshness_rule": "질문의 사건 시점과 자료 기준일을 명시한다. 과거 라운드를 현재 단계로 일반화하지 않는다.",
+      "evidence_rule": "source_id 및 고정 원문 구간으로 뒷받침하고 비교 조건을 생략하지 않는다.",
+      "applicability_rule": "이 기업·영역·질문 범위에만 적용한다. 다른 기업 또는 전체 투자보고서의 정답으로 사용하지 않는다.",
+      "unknown_information_policy": "원문에 없는 값은 0이나 사실 없음으로 단정하지 않고 미확인이라고 응답한다.",
+      "reference_ids": [
+        "reference_fixture_market_1"
+      ],
+      "critical": true,
+      "applicability": "applicable",
+      "not_applicable_reason": null,
+      "expected_unknown_response": "제공된 자료로는 해당 수치 또는 상태를 확인할 수 없어 추가 근거가 필요합니다."
+    },
+    {
+      "required_item_id": "required_fixture_market_2025_excluded",
+      "version": "1.0.0",
+      "company_id": "FixtureChip",
+      "section_id": "market",
+      "description": "2025년 시장 규모",
+      "accuracy_rule": "2024년 값을 2025년으로 복사하지 않는다.",
+      "freshness_rule": "2025년 기준의 자료가 별도로 필요하다.",
+      "evidence_rule": "2025년 수치를 추정하려면 해당 연도 원문이 필요하다.",
+      "applicability_rule": "2024년 자료 범위를 평가할 때 2025년 항목은 분모에서 제외한다.",
+      "unknown_information_policy": "제공되지 않은 2025년 수치를 임의로 채우지 않는다.",
+      "reference_ids": [],
+      "critical": false,
+      "applicability": "not_applicable",
+      "not_applicable_reason": "이 case는 제공된 2024년 자료 범위의 질문이며 2025년 규모 추정은 요구하지 않는다.",
+      "expected_unknown_response": "제공 자료로는 2025년 규모를 확인할 수 없습니다."
+    }
+  ],
+  "case_reviews": [
+    {
+      "case_id": "fixture_currency",
+      "scope_description": "다음 가상 자료에 한정하여 FixtureChip의 currency 내용을 설명하라. 이외의 최신 정보·전체 보고서는 이 reference 범위 밖이다.",
+      "completeness": "complete",
+      "reviewer": "fixture-author:Codex",
+      "reviewed_at": "2026-10-05T04:42:11Z",
+      "review_kind": "synthetic_fixture",
+      "relevant_source_ids": [
+        "source_fixture_currency"
+      ],
+      "retrieval_applicability_reason": "검색 호출과 이 원문 관련성 기준이 연결된 경우에만 적용한다.",
+      "tags": [
+        "numeric",
+        "currency"
+      ],
+      "expected_assertions": [
+        {
+          "statement": "FixtureChip은 6,400만 달러를 조달했다.",
+          "expected_verdict": "contradicted",
+          "reason": "10배 수치 오류",
+          "fact_ids": [
+            "fact_fixture_currency_1"
+          ]
+        },
+        {
+          "statement": "FixtureChip은 6억 4천만 원을 조달했다.",
+          "expected_verdict": "contradicted",
+          "reason": "USD를 KRW로 바꿈",
+          "fact_ids": [
+            "fact_fixture_currency_1"
+          ]
+        }
+      ],
+      "expected_route": null,
+      "route_reason": null
+    },
+    {
+      "case_id": "fixture_time",
+      "scope_description": "다음 가상 자료에 한정하여 FixtureChip의 time 내용을 설명하라. 이외의 최신 정보·전체 보고서는 이 reference 범위 밖이다.",
+      "completeness": "complete",
+      "reviewer": "fixture-author:Codex",
+      "reviewed_at": "2026-10-05T04:42:11Z",
+      "review_kind": "synthetic_fixture",
+      "relevant_source_ids": [
+        "source_fixture_time"
+      ],
+      "retrieval_applicability_reason": "검색 호출과 이 원문 관련성 기준이 연결된 경우에만 적용한다.",
+      "tags": [
+        "time"
+      ],
+      "expected_assertions": [
+        {
+          "statement": "FixtureChip의 2024년 8월 라운드는 Seed였다.",
+          "expected_verdict": "contradicted",
+          "reason": "과거 라운드와 혼동",
+          "fact_ids": [
+            "fact_fixture_time_1"
+          ]
+        }
+      ],
+      "expected_route": null,
+      "route_reason": null
+    },
+    {
+      "case_id": "fixture_poc",
+      "scope_description": "다음 가상 자료에 한정하여 FixtureChip의 poc 내용을 설명하라. 이외의 최신 정보·전체 보고서는 이 reference 범위 밖이다.",
+      "completeness": "complete",
+      "reviewer": "fixture-author:Codex",
+      "reviewed_at": "2026-10-05T04:42:11Z",
+      "review_kind": "synthetic_fixture",
+      "relevant_source_ids": [
+        "source_fixture_poc"
+      ],
+      "retrieval_applicability_reason": "검색 호출과 이 원문 관련성 기준이 연결된 경우에만 적용한다.",
+      "tags": [
+        "poc_contract",
+        "production"
+      ],
+      "expected_assertions": [
+        {
+          "statement": "FixtureChip은 유료 고객 2곳과 계약하고 양산을 시작했다.",
+          "expected_verdict": "contradicted",
+          "reason": "PoC를 계약 및 양산으로 바꿈",
+          "fact_ids": [
+            "fact_fixture_poc_1",
+            "fact_fixture_poc_2"
+          ]
+        }
+      ],
+      "expected_route": null,
+      "route_reason": null
+    },
+    {
+      "case_id": "fixture_benchmark",
+      "scope_description": "다음 가상 자료에 한정하여 FixtureChip의 benchmark 내용을 설명하라. 이외의 최신 정보·전체 보고서는 이 reference 범위 밖이다.",
+      "completeness": "complete",
+      "reviewer": "fixture-author:Codex",
+      "reviewed_at": "2026-10-05T04:42:11Z",
+      "review_kind": "synthetic_fixture",
+      "relevant_source_ids": [
+        "source_fixture_benchmark"
+      ],
+      "retrieval_applicability_reason": "검색 호출과 이 원문 관련성 기준이 연결된 경우에만 적용한다.",
+      "tags": [
+        "unit",
+        "benchmark_conditions"
+      ],
+      "expected_assertions": [
+        {
+          "statement": "FixtureChip은 LLM FP16 성능이 모든 GPU보다 2배 높다.",
+          "expected_verdict": "unverifiable",
+          "reason": "측정 대상·정밀도·비교 장치 범위 밖",
+          "fact_ids": [
+            "fact_fixture_benchmark_1"
+          ]
+        },
+        {
+          "statement": "FixtureChip 처리량은 2 TOPS이다.",
+          "expected_verdict": "unverifiable",
+          "reason": "상대 배율에서 절대 TOPS 수치를 알 수 없음",
+          "fact_ids": [
+            "fact_fixture_benchmark_1"
+          ]
+        }
+      ],
+      "expected_route": null,
+      "route_reason": null
+    },
+    {
+      "case_id": "fixture_unknown",
+      "scope_description": "다음 가상 자료에 한정하여 FixtureChip의 unknown 내용을 설명하라. 이외의 최신 정보·전체 보고서는 이 reference 범위 밖이다.",
+      "completeness": "complete",
+      "reviewer": "fixture-author:Codex",
+      "reviewed_at": "2026-10-05T04:42:11Z",
+      "review_kind": "synthetic_fixture",
+      "relevant_source_ids": [
+        "source_fixture_unknown"
+      ],
+      "retrieval_applicability_reason": "검색 호출과 이 원문 관련성 기준이 연결된 경우에만 적용한다.",
+      "tags": [
+        "missing_evidence",
+        "unknown"
+      ],
+      "expected_assertions": [
+        {
+          "statement": "FixtureChip의 연매출은 100억 원이다.",
+          "expected_verdict": "unverifiable",
+          "reason": "매출 근거 없음",
+          "fact_ids": [
+            "fact_fixture_unknown_1",
+            "fact_fixture_unknown_2"
+          ]
+        },
+        {
+          "statement": "FixtureChip의 유료 고객 수는 0명이다.",
+          "expected_verdict": "unverifiable",
+          "reason": "미공개와 0을 혼동",
+          "fact_ids": [
+            "fact_fixture_unknown_1",
+            "fact_fixture_unknown_2"
+          ]
+        }
+      ],
+      "expected_route": null,
+      "route_reason": null
+    },
+    {
+      "case_id": "fixture_recommend",
+      "scope_description": "다음 가상 자료에 한정하여 FixtureChip의 recommend 내용을 설명하라. 이외의 최신 정보·전체 보고서는 이 reference 범위 밖이다.",
+      "completeness": "complete",
+      "reviewer": "fixture-author:Codex",
+      "reviewed_at": "2026-10-05T04:42:11Z",
+      "review_kind": "synthetic_fixture",
+      "relevant_source_ids": [
+        "source_fixture_recommend"
+      ],
+      "retrieval_applicability_reason": "검색 호출과 이 원문 관련성 기준이 연결된 경우에만 적용한다.",
+      "tags": [
+        "recommend"
+      ],
+      "expected_assertions": [
+        {
+          "statement": "고정 정책에서 FixtureChip은 추천 후보다.",
+          "expected_verdict": "verified",
+          "reason": "70 >= 65",
+          "fact_ids": [
+            "fact_fixture_recommend_1"
+          ]
+        }
+      ],
+      "expected_route": "recommend",
+      "route_reason": "CLI의 65점 기준을 고정한 분기 예제; 실제 Agent 점수 또는 투자 추천이 아니다."
+    },
+    {
+      "case_id": "fixture_hold",
+      "scope_description": "다음 가상 자료에 한정하여 FixtureChip의 hold 내용을 설명하라. 이외의 최신 정보·전체 보고서는 이 reference 범위 밖이다.",
+      "completeness": "complete",
+      "reviewer": "fixture-author:Codex",
+      "reviewed_at": "2026-10-05T04:42:11Z",
+      "review_kind": "synthetic_fixture",
+      "relevant_source_ids": [
+        "source_fixture_hold"
+      ],
+      "retrieval_applicability_reason": "검색 호출과 이 원문 관련성 기준이 연결된 경우에만 적용한다.",
+      "tags": [
+        "hold"
+      ],
+      "expected_assertions": [
+        {
+          "statement": "고정 정책에서 FixtureChip은 추천 후보다.",
+          "expected_verdict": "contradicted",
+          "reason": "60 < 65",
+          "fact_ids": [
+            "fact_fixture_hold_1"
+          ]
+        }
+      ],
+      "expected_route": "hold",
+      "route_reason": "CLI의 65점 기준을 고정한 분기 예제; 실제 Agent 점수 또는 투자 추천이 아니다."
+    },
+    {
+      "case_id": "fixture_market",
+      "scope_description": "다음 가상 자료에 한정하여 FixtureChip의 market 내용을 설명하라. 이외의 최신 정보·전체 보고서는 이 reference 범위 밖이다.",
+      "completeness": "complete",
+      "reviewer": "fixture-author:Codex",
+      "reviewed_at": "2026-10-05T04:42:11Z",
+      "review_kind": "synthetic_fixture",
+      "relevant_source_ids": [
+        "source_fixture_market"
+      ],
+      "retrieval_applicability_reason": "검색 호출과 이 원문 관련성 기준이 연결된 경우에만 적용한다.",
+      "tags": [
+        "market",
+        "time"
+      ],
+      "expected_assertions": [
+        {
+          "statement": "가상 국내 시장의 2025년 규모는 100억 원이다.",
+          "expected_verdict": "unverifiable",
+          "reason": "시장 수치 시점 외삽",
+          "fact_ids": [
+            "fact_fixture_market_1"
+          ]
+        }
+      ],
+      "expected_route": null,
+      "route_reason": null
+    }
+  ],
+  "inventory": {
+    "evidence/fixture_benchmark.json": "6715a027a9bf597f8ce91ed2758fb6d166844de33432b70c5fbb3f6e9e8d0f30",
+    "evidence/fixture_currency.json": "8c87e7efe0fb041accff0e3fa14e8b4a78d39a2e9ae5dbfe36bfd01fe8e2c519",
+    "evidence/fixture_hold.json": "a87dde07e6c1f12ce2d07bb397192195411c15a01259962565ebd6de4f773a7b",
+    "evidence/fixture_market.json": "946bbf6865eed0a805747a06591533be28577d7510b1d4b82f96f9e3d4feb7ba",
+    "evidence/fixture_poc.json": "eecdd2135daf09ccd73e1ce590987a447cfc0a799d0186a877a487de9f79c1a7",
+    "evidence/fixture_recommend.json": "1cd5034d095813e12f9d5903f4ef3f9765b8a2f3f455c423437607a8235d9e28",
+    "evidence/fixture_time.json": "aa3ecf89ce480dbb7cadd239667a4e7797c2ac29f690453e75def6072a0e1cec",
+    "evidence/fixture_unknown.json": "a62db8dd57aa2ebd9a85b5f51dcd4919f92c85fd9b690e8e0b1659f4e910213c",
+    "references/fixture_benchmark.json": "ba742529743decb515f879ed23cc2407e516a0f11dba18bde865ee19a198477f",
+    "references/fixture_currency.json": "b1bed36acd7ca9c47a4b35cb2f043884e6635e68268eaafd0187c0a39ee18c19",
+    "references/fixture_hold.json": "6081368c258ad8407f77f914e88a6bbcce86c33eaa08b014ca1031ef16358dd2",
+    "references/fixture_market.json": "9d66bc861c77b0182190b216ee595685758739f4e27e8b2822e742c56a1df212",
+    "references/fixture_poc.json": "00fbf8fb11b03cb600b07f913729a4f62bccd5a0b88bfba36266a4ca45d0d497",
+    "references/fixture_recommend.json": "8518c345196cb715eb40e45edbebcc018f9d157276e839610e8acbd15a0cbe77",
+    "references/fixture_time.json": "63f4b01ad2eaa71b36bd10481e70343601f33eb521e9261d9dc58742cd7ac674",
+    "references/fixture_unknown.json": "74b3a971ba14c83198b3e336d48802b578c97e0d451ccdb80f9548674d11cad0",
+    "sources/fixture_benchmark.txt": "9e5e3c2594b34427ea8f8db876cd4c0b28562959b8450b98283ea1856ccc4bda",
+    "sources/fixture_currency.txt": "83b22b8881f195989b1375d1d0ffa53bf8bbc58b35312328bd21d06496dd2bd1",
+    "sources/fixture_hold.txt": "f2a354d4b806aa0dfba7dfef5a7b3ac3d0d6e30410ee53bfd773b4193419857e",
+    "sources/fixture_market.txt": "e8a38ff5b36e9da964e15abb4c1ad7eeb5474a89a0a855593426e1fc53fd9c46",
+    "sources/fixture_poc.txt": "684823fbf149d8fc0a210cfbf944caf4b47d0db271d9714c482862daea805d83",
+    "sources/fixture_recommend.txt": "6476d884f967b098d6f16dfd362baa46370021c3b0af17274bfa60bcd69d2013",
+    "sources/fixture_time.txt": "67a4f27bb97e6de2b346ca5d3eb119eb7c6116141791c10a71154b6248bab9c6",
+    "sources/fixture_unknown.txt": "12073b86c90eb426bc95717ba6169925fafbfc53e53a5740baa8326aad217c32"
+  }
+}
