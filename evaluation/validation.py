@@ -137,6 +137,19 @@ def validate_ragas_input(directory: Path, sample) -> list[str]:
             errors.append('delivered context belongs to another invocation')
         elif [c['text'] for c in contexts] != sample.retrieved_contexts:
             errors.append('faithfulness contexts differ from actual delivered contexts')
+    elif sample.context_kind == 'received_input':
+        invocation = invocations.get(sample.origin_invocation_id)
+        ref = invocation.get('input_snapshot') if invocation else None
+        if invocation is None or invocation['invocation_type'] not in {'node', 'function'} or ref is None:
+            errors.append('received input requires recorded node/function input')
+        else:
+            path = Path(ref['path'])
+            if path.is_symlink() or not path.resolve().is_relative_to(directory.resolve()) or not path.is_file():
+                errors.append('received input snapshot outside run')
+            elif hashlib.sha256(path.read_bytes()).hexdigest() != ref['sha256']:
+                errors.append('received input hash mismatch')
+            elif sample.retrieved_contexts != [path.read_text()] or sample.context_ids != ['received_' + sample.origin_invocation_id]:
+                errors.append('received context differs from actual invocation input')
     elif sample.context_kind == 'retrieved':
         retrieval = retrievals.get(sample.origin_invocation_id)
         if retrieval is None:

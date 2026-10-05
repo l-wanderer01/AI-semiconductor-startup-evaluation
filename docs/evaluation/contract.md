@@ -1,7 +1,7 @@
 # Agent 평가 계약
 
 - 계약 버전: 0.1.0
-- 관련 이슈: #19, #20, #21
+- 관련 이슈: #19, #20, #21, #22
 - 작성자: l-wanderer01
 - 최종 수정일: 2026.10.05
 - 상태: #20 구현에 적용, #21 데이터셋 계약 추가 (실제 reference 사람 검토 대기)
@@ -205,6 +205,8 @@ RAGAS 입력:
 metric별 문맥 연결 규칙:
 - Faithfulness는 평가 대상 생성 호출에 실제 전달된 delivered_contexts를 사용한다.
   최종 보고서 작성 시 중간 분석 결과가 전달됐다면 해당 분석문을 보존하고 원문 evidence와의 계보를 연결한다.
+  #22의 함수/노드 평가에서는 실제 수신한 input_snapshot을 received_input으로 구별해서 사용할 수 있다.
+  원문 위치·해시·본문을 실제 호출 입력에 대조하며 검색/LLM 문맥을 만들어내지 않는다.
 - Context Recall/Precision은 실제 검색 호출의 query, 순위 및 원문 source ID가 연결된
   retrieval_candidates를 사용한다. 검색 결과의 순서를 보존한다.
 - 중간 분석문이나 여러 기업의 문맥 합집합을 실제 검색 결과로 대체하지 않는다.
@@ -500,7 +502,9 @@ metric별 실제 프롬프트와 지원 한계는 [구현 기록](issue20.md)에
 
 미정 사항:
 - RAGAS 채택 버전과 API: 0.4.3 / SingleTurnSample.single_turn_ascore로 확정하고 호환성 테스트를 추가했다.
-- metric별 빈 문맥 및 trace: 빈 적용 대상은 N/A, 공개 callbacks 원응답을 보존한다. raw/custom claim 대응과 분모 추출은 미지원이다.
+- metric별 빈 문맥 및 trace: 빈 적용 대상은 N/A, 공개 callbacks 원응답을 보존한다.
+  #22에서는 실제 분해 callback이 있는 경우 raw/custom claim 원문 일치 후보와 위치를 partial로 연결한다.
+  의미 대응과 분자/분모는 자동 확정하지 않는다. [단계 sample 및 주장 추적](issue22.md)을 참조한다.
 - 경로별 workflow manifest와 필수 산출물 목록: evaluation/workflow.py와 issue20.md에 확정했다.
 - company_id는 현재 호출 기록의 기업명과 정확히 일치하는 고정 ID를 데이터셋에 저장한다.
   최초 실제 자료는 Groq, Tenstorrent를 사용한다. 명칭/동일 기업 병합이 바뀌면 새 데이터셋 버전과 명시적인 ID 대응이 필요하다.
@@ -517,3 +521,4 @@ metric별 실제 프롬프트와 지원 한계는 [구현 기록](issue20.md)에
 | 0.1.0-draft 수정 | 개별 평가 상태·판정 분리, 재시도 식별자, metric별 문맥, 생성·평가 저장 수명주기 명확화 | 계약 리뷰 1~4번 반영 |
 
 | 0.1.0 | 두 경로 계측·workflow·참조 검증·RAGAS 0.4.3 adapter 구현 | #20 실행·저장 기반 완성 |
+| #22 sample schema 0.3.0 | 원자 주장·원문 위치·단계 sample·후보 계보·received_input 확장 | run 계약 0.1.0과 별개로 후처리 보관 계약을 버전 관리 |

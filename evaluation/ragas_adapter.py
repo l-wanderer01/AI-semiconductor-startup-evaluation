@@ -17,7 +17,7 @@ from .recording import SnapshotPayload, digest, identifier, json_value, now
 from .storage import EvaluationStorage, _redact_value
 
 RAGAS_VERSION = '0.4.3'
-ADAPTER_VERSION = '0.1.0'
+ADAPTER_VERSION = '0.2.0'
 API_VERSION = 'SingleTurnSample.single_turn_ascore'
 KOREAN_INSTRUCTION = ('\n한국어 입력을 그대로 평가하세요. 숫자·통화·단위·시점·기업명과 비교 조건을 보존하고, '
                       'PoC·검증·계약·양산을 구분하세요. 이유와 분해된 주장은 한국어로 작성하되 JSON schema를 지키세요.')
@@ -52,6 +52,9 @@ class TraceCapture(BaseCallbackHandler):
     """공개 callback에서 제공된 원응답·판정만 보존한다. 분모는 추정하지 않는다."""
     def __init__(self):
         self.rows = []
+    def on_chain_start(self, serialized, inputs, *, run_id, parent_run_id=None, **kwargs):
+        self.rows.append({'kind': 'chain_start', 'run_id': str(run_id), 'parent_run_id': str(parent_run_id) if parent_run_id else None,
+                          'name': (serialized or {}).get('name'), 'input': json_value(inputs)})
     def on_chain_end(self, outputs, *, run_id, **kwargs):
         self.rows.append({'kind': 'chain_end', 'run_id': str(run_id), 'output': json_value(outputs)})
     def on_llm_end(self, response, *, run_id, **kwargs):
@@ -188,7 +191,7 @@ class RagasAdapter:
 async def evaluate_inputs(storage: EvaluationStorage, run_id: str, samples: list[RagasSampleInput],
                           adapter: RagasAdapter, *, dataset_version: str,
                           reference_sha256: str, input_sha256: str, evidence_sha256: str,
-                          previous_evaluation_id=None, resume_reason=None, preparation_metadata=None):
+                          previous_evaluation_id=None, resume_reason=None, preparation_metadata=None, stage_package=None):
     """불변 생성 run 아래 독립 평가를 만든다. 재개도 새 ID로 저장한다."""
     if not samples:
         raise ValueError('evaluation requires at least one sample')
@@ -201,6 +204,12 @@ async def evaluate_inputs(storage: EvaluationStorage, run_id: str, samples: list
         raise ValueError('postprocessing requires a frozen generation run')
     if input_sha256 != run_manifest.input_snapshot.sha256 or evidence_sha256 != run_manifest.evidence_snapshot.sha256:
         raise ValueError('evaluation input/evidence hash does not match generation run')
+    if stage_package is not None:
+        if (stage_package['run_id'], stage_package['input_sha256'], stage_package['evidence_sha256']) != (run_id, input_sha256, evidence_sha256):
+            raise ValueError('stage package generation scope mismatch')
+        dataset = stage_package.get('dataset')
+        if dataset is not None and (dataset['manifest']['version'], dataset['manifest']['sha256']) != (dataset_version, reference_sha256):
+            raise ValueError('stage package reference scope mismatch')
     if previous_evaluation_id:
         storage._validate_component(previous_evaluation_id)
         previous = EvaluationManifest.model_validate_json(
@@ -213,13 +222,32 @@ async def evaluate_inputs(storage: EvaluationStorage, run_id: str, samples: list
     count = len({s.sample_id for s in samples})
     manifest = EvaluationManifest(evaluation_id=evaluation_id, run_id=run_id,
                                   previous_evaluation_id=previous_evaluation_id, resume_reason=resume_reason,
-                                  mode='end_to_end', dataset_version=dataset_version,
+                                  mode=stage_package['mode'] if stage_package else 'end_to_end', dataset_version=dataset_version,
                                   reference_sha256=reference_sha256, input_sha256=input_sha256,
                                   evidence_sha256=evidence_sha256, evaluator=configuration,
                                   started_at=now(), quality_evaluation_status='running', sample_count=count)
     storage.write_json(directory, 'evaluation.json', manifest)
+    if stage_package and stage_package['mode'] == 'isolated' and stage_package['isolated_contract']['evaluator_configuration_sha256'] != configuration.configuration_sha256:
+        from .recording import error_record
+        failure = ValueError('isolated evaluator configuration mismatch')
+        values = manifest.model_dump(mode='json')
+        values.update(quality_evaluation_status='failed', ended_at=now(), error=error_record(failure))
+        storage.update_manifest(directory, 'evaluation.json', EvaluationManifest.model_validate(values))
+        storage.freeze(directory)
+        raise failure
     if preparation_metadata is not None:
         storage.write_json(directory, 'dataset_preparation.json', SnapshotPayload(data=preparation_metadata))
+    custom_claims = []
+    if stage_package is not None:
+        from .models import ClaimRecord
+        from .claim_models import StageSample
+        storage.write_json(directory, 'stage_package.json', SnapshotPayload(data=stage_package))
+        for row in stage_package['claims']:
+            claim = ClaimRecord.model_validate({**row, 'evaluation_id': evaluation_id})
+            storage.append_jsonl(directory, 'claims.jsonl', claim)
+            custom_claims.append(claim)
+        for row in stage_package['samples']:
+            storage.append_jsonl(directory, 'stage_samples.jsonl', StageSample.model_validate({**row, 'evaluation_id': evaluation_id}))
     results = []
     clock = __import__('time').monotonic()
     from .models import EventRecord
@@ -242,6 +270,11 @@ async def evaluate_inputs(storage: EvaluationStorage, run_id: str, samples: list
                                     mapping_status='unsupported', unavailable_reason=reason)
         else:
             result, trace = await adapter.score(sample)
+        if stage_package is not None:
+            from .ragas_claim_mapping import map_raw_claims
+            records = map_raw_claims(trace, sample, custom_claims)
+            for record in records:
+                storage.append_jsonl(directory, 'ragas_claim_mappings.jsonl', SnapshotPayload(data=record))
         for attempt in trace.raw_response.get('attempts', []):
             if attempt['attempt'] > 1:
                 event('retry', details={'sample_id': sample.sample_id, 'attempt': attempt['attempt'],

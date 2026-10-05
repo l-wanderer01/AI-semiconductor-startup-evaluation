@@ -1,0 +1,18 @@
+{
+  "label_version": "ko-handwritten-oracle-v1",
+  "author": "Codex",
+  "human_reviewed": false,
+  "purpose": "수작업으로 명시한 회귀 검증 기대값. 실제 LLM 추출 정확도의 사람 평가 결과가 아니다.",
+  "cases": [
+    {"id":"compound", "text":"FixtureChip은 100억 원을 조달했고 고객은 2곳이다.", "facts":["FixtureChip은 100억 원을 조달했다.", "FixtureChip의 고객은 2곳이다."], "quotes":["100억 원을 조달", "고객은 2곳"], "kinds":["fact","fact"], "categories":["funding","customers"], "relations":["funding_current","customers_current"]},
+    {"id":"mixed", "text":"FixtureChip은 PoC 진행 중이며 투자 추천 대상이다.", "facts":["FixtureChip은 PoC 진행 중이다.", "FixtureChip은 투자 추천 대상이다."], "quotes":["PoC 진행 중", "투자 추천 대상"], "kinds":["fact","decision"], "categories":["commercial_status","other"], "relations":["commercial_current","recommendation"]},
+    {"id":"forecast", "text":"FixtureChip의 매출은 내년에 성장할 전망이다.", "facts":["FixtureChip의 매출은 내년에 성장할 전망이다."], "quotes":["FixtureChip의 매출은 내년에 성장할 전망이다."], "kinds":["opinion"], "categories":["other"], "relations":["forecast"]},
+    {"id":"score", "text":"FixtureChip의 기술 점수는 4/5점이다.", "facts":["FixtureChip의 기술 점수는 4/5점이다."], "quotes":["FixtureChip의 기술 점수는 4/5점이다."], "kinds":["score"], "categories":["other"], "relations":["technology_score"]},
+    {"id":"table", "text":"| FixtureChip | Series A | 100억 원 |", "facts":["FixtureChip은 Series A 단계다.", "FixtureChip은 100억 원을 조달했다."], "quotes":["Series A", "100억 원"], "kinds":["fact","fact"], "categories":["stage","funding"], "relations":["stage_current","funding_current"]},
+    {"id":"benchmark", "text":"FixtureChip 자체 시험: ResNet-50 INT8 batch=1, 10W에서 비교기 A 대비 처리량 2배다.", "facts":["FixtureChip 자체 시험: ResNet-50 INT8 batch=1, 10W에서 비교기 A 대비 처리량 2배다."], "quotes":["FixtureChip 자체 시험: ResNet-50 INT8 batch=1, 10W에서 비교기 A 대비 처리량 2배다."], "kinds":["fact"], "categories":["benchmark"], "relations":["throughput_ResNet50_INT8_batch1_10W_A"]},
+    {"id":"time", "text":"FixtureChip은 2024년 8월에 USD 640,000,000을 조달했다.", "facts":["FixtureChip은 2024년 8월에 USD 640,000,000을 조달했다."], "quotes":["FixtureChip은 2024년 8월에 USD 640,000,000을 조달했다."], "kinds":["fact"], "categories":["funding"], "relations":["funding_2024_08"]},
+    {"id":"unknown", "text":"FixtureChip 자료에는 유료 고객 수가 없다.", "facts":["FixtureChip 자료에는 유료 고객 수가 없다."], "quotes":["FixtureChip 자료에는 유료 고객 수가 없다."], "kinds":["fact"], "categories":["customers"], "relations":["customer_disclosure"]},
+    {"id":"upstream", "text":"FixtureChip의 고객은 20곳이다.", "facts":["FixtureChip의 고객은 20곳이다."], "quotes":["FixtureChip의 고객은 20곳이다."], "kinds":["fact"], "categories":["customers"], "relations":["customers_current"]},
+    {"id":"corrected", "text":"FixtureChip의 고객은 2곳이다.", "facts":["FixtureChip의 고객은 2곳이다."], "quotes":["FixtureChip의 고객은 2곳이다."], "kinds":["fact"], "categories":["customers"], "relations":["customers_current"]}
+  ]
+}

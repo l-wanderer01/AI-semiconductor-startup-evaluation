@@ -19,6 +19,7 @@ def main():
     inputs = evaluate.add_mutually_exclusive_group(required=True)
     inputs.add_argument('--samples', type=Path, help='#20 수동 RagasSampleInput JSONL')
     inputs.add_argument('--dataset', type=Path, help='#21 사람 검토/발행된 고정 데이터셋')
+    inputs.add_argument('--stage-package', type=Path, help='#22 원자 주장/단계 sample 보관 디렉토리')
     evaluate.add_argument('--bindings', type=Path, help='--dataset 사용 시 실제 호출과 원문 응답 구간 매핑')
     evaluate.add_argument('--dataset-version')
     evaluate.add_argument('--reference-sha256')
@@ -34,7 +35,18 @@ def main():
     from .ragas_adapter import RagasAdapter, evaluate_inputs
     manifest = RunManifest.model_validate_json((directory / 'run.json').read_text())
     preparation = None
-    if args.dataset:
+    stage_package = None
+    if args.stage_package:
+        if args.bindings or args.dataset_version or args.reference_sha256:
+            parser.error('--stage-package는 패키지에 저장된 reference 버전/해시를 사용합니다.')
+        from .stage_samples import load_stage_package, ragas_inputs
+        stage_package = load_stage_package(args.stage_package, directory)
+        if stage_package['dataset'] is None or stage_package['dataset']['purpose'] != 'baseline':
+            parser.error('--stage-package 평가에는 사람 검토된 baseline 데이터셋이 필요합니다.')
+        samples = ragas_inputs(stage_package)
+        dataset_manifest = stage_package['dataset']['manifest']
+        args.dataset_version, args.reference_sha256 = dataset_manifest['version'], dataset_manifest['sha256']
+    elif args.dataset:
         if not args.bindings or args.dataset_version or args.reference_sha256:
             parser.error('--dataset에는 --bindings만 지정합니다. 버전/해시는 검증된 데이터셋에서 읽습니다.')
         from .dataset import load_dataset, prepare_run_samples
@@ -57,6 +69,7 @@ def main():
         input_sha256=manifest.input_snapshot.sha256, evidence_sha256=manifest.evidence_snapshot.sha256,
         previous_evaluation_id=args.previous_evaluation_id, resume_reason=args.resume_reason,
         preparation_metadata=preparation,
+        stage_package=stage_package,
     ))
     print(result)
 
