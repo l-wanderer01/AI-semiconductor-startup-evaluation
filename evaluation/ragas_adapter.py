@@ -17,7 +17,7 @@ from .recording import SnapshotPayload, digest, identifier, json_value, now
 from .storage import EvaluationStorage, _redact_value
 
 RAGAS_VERSION = '0.4.3'
-ADAPTER_VERSION = '0.4.0'
+ADAPTER_VERSION = '0.5.0'
 API_VERSION = 'SingleTurnSample.single_turn_ascore'
 KOREAN_INSTRUCTION = ('\n한국어 입력을 그대로 평가하세요. 숫자·통화·단위·시점·기업명과 비교 조건을 보존하고, '
                       'PoC·검증·계약·양산을 구분하세요. 이유와 분해된 주장은 한국어로 작성하되 JSON schema를 지키세요.')
@@ -194,8 +194,10 @@ async def evaluate_inputs(storage: EvaluationStorage, run_id: str, samples: list
                           reference_sha256: str, input_sha256: str, evidence_sha256: str,
                           previous_evaluation_id=None, resume_reason=None, preparation_metadata=None, stage_package=None,
                           factual_judge=None, reference_dataset_directory=None, allow_synthetic=False,
-                          support_judge=None):
+                          support_judge=None, coverage_judge=None):
     """불변 생성 run 아래 독립 평가를 만든다. 재개도 새 ID로 저장한다."""
+    if coverage_judge is not None and factual_judge is None:
+        raise ValueError('required information coverage requires independent custom factual evaluation')
     if factual_judge is not None:
         if stage_package is None or reference_dataset_directory is None:
             raise ValueError('custom factual evaluation requires stage package and independent reference dataset')
@@ -257,6 +259,14 @@ async def evaluate_inputs(storage: EvaluationStorage, run_id: str, samples: list
         configuration.configuration_sha256 = digest(canonical_bytes({'previous_configuration_sha256':configuration.configuration_sha256,
                                                                       'custom_grounding_configuration':grounding_config}))
         storage.write_json(directory,'custom_grounding_configuration.json',SnapshotPayload(data=grounding_config))
+    if coverage_judge is not None:
+        from .dataset import canonical_bytes
+        coverage_config = coverage_judge.configuration()
+        configuration.custom_coverage_configuration = coverage_config
+        configuration.configuration_sha256 = digest(canonical_bytes({
+            'previous_configuration_sha256': configuration.configuration_sha256,
+            'custom_coverage_configuration': coverage_config}))
+        storage.write_json(directory, 'custom_coverage_configuration.json', SnapshotPayload(data=coverage_config))
     sample_ids = {s.sample_id for s in samples}
     if factual_judge is not None or support_judge is not None:
         sample_ids.update(s['sample_id'] for s in stage_package['samples'])
@@ -380,16 +390,39 @@ async def evaluate_inputs(storage: EvaluationStorage, run_id: str, samples: list
         for row in diagnostic_results(grounding_bundle,samples,results):
             storage.append_jsonl(directory,'grounding_diagnostics.jsonl',SnapshotPayload(data=row))
         grounding_by_sample = {s['sample_id']:s for s in grounding_summaries}
+    coverage_by_sample = {}
+    coverage_scope_complete = True
+    if coverage_judge is not None:
+        from .coverage import evaluate_coverage, paired_coverage_results
+        try:
+            required_rows, coverage_summaries = evaluate_coverage(stage_package, independent_dataset,
+                coverage_judge, custom_assessments, evaluation_id)
+            for row in required_rows:
+                storage.append_jsonl(directory, 'required_information_assessments.jsonl', row)
+            storage.write_json(directory, 'required_information_metrics.json', SnapshotPayload(data=coverage_summaries))
+            for row in paired_coverage_results(stage_package, results, coverage_summaries):
+                storage.append_jsonl(directory, 'recall_coverage_results.jsonl', SnapshotPayload(data=row))
+            coverage_by_sample = {s['key']: s for s in coverage_summaries if s['scope'] == 'sample'}
+            coverage_scope_complete = all(s['status'] in {'completed', 'not_applicable'} for s in coverage_summaries)
+        except Exception as failure:
+            from .recording import error_record
+            event('failure', details={'scope': 'required_information', 'reason': str(failure)})
+            values = manifest.model_dump(mode='json')
+            values.update(quality_evaluation_status='failed', ended_at=now(), error=error_record(failure))
+            storage.update_manifest(directory, 'evaluation.json', EvaluationManifest.model_validate(values))
+            storage.freeze(directory)
+            raise
     custom_by_sample = {s['key']: s for s in custom_summaries if s['scope'] == 'sample'}
     complete = sum(all(r.evaluation_status in {'completed', 'not_applicable'} for r in results if r.sample_id == sid)
                    and (sid not in custom_by_sample or custom_by_sample[sid]['status'] in {'completed', 'not_applicable'})
-                   and (sid not in grounding_by_sample or grounding_by_sample[sid]['status']=='completed') for sid in sample_ids)
+                   and (sid not in grounding_by_sample or grounding_by_sample[sid]['status']=='completed')
+                   and (sid not in coverage_by_sample or coverage_by_sample[sid]['status'] in {'completed', 'not_applicable'}) for sid in sample_ids)
     values = manifest.model_dump(mode='json')
     storage.write_json(directory, 'metrics.json', MetricsRecord(run_id=run_id, evaluation_id=evaluation_id,
         scope='run', sample_count=count, ragas_results=results))
     event('end', details={'scope': 'evaluation', 'completed_sample_count': complete})
     values.update(ended_at=now(), duration_seconds=__import__('time').monotonic()-clock, completed_sample_count=complete,
-                  quality_evaluation_status='completed' if complete == count else ('partial' if complete else 'failed'))
+                  quality_evaluation_status='completed' if complete == count and coverage_scope_complete else ('partial' if complete else 'failed'))
     storage.update_manifest(directory, 'evaluation.json', EvaluationManifest.model_validate(values))
     storage.freeze(directory)
     return directory

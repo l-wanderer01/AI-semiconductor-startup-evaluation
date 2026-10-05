@@ -543,6 +543,7 @@ class EvaluatorConfiguration(RecordModel):
     max_retries: Count = 0
     custom_factual_configuration: dict[str, JsonValue] | None = None
     custom_grounding_configuration: dict[str, JsonValue] | None = None
+    custom_coverage_configuration: dict[str, JsonValue] | None = None
 
 
 class EvaluationManifest(TimingRecord):
