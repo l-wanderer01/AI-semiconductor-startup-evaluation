@@ -1,0 +1,15 @@
+{
+  "version": "ko-evaluator-oracle-v1",
+  "author": "Codex",
+  "human_reviewed": false,
+  "purpose": "가상 한국어 회귀 사례. 사람 검증 정확도나 실제 기업 사실이 아니다.",
+  "cases": [
+    {"id":"number", "reference":"FixtureChip 고객은 2곳이다.", "response":"FixtureChip 고객은 20곳이다.", "expected":"contradicted", "tags":["number"]},
+    {"id":"currency", "reference":"FixtureChip 조달액은 USD 100 million이다.", "response":"FixtureChip 조달액은 1억 원이다.", "expected":"contradicted", "tags":["currency","number"]},
+    {"id":"unit", "reference":"FixtureChip 자체 시험 INT8 batch=1, 10W에서 처리량은 2 TOPS다.", "response":"FixtureChip 처리량은 2 TFLOPS다.", "expected":"contradicted", "tags":["unit","technology"]},
+    {"id":"date", "reference":"FixtureChip 계약 체결일은 2024년 8월이다.", "response":"FixtureChip 계약 체결일은 2025년 8월이다.", "expected":"contradicted", "tags":["date","commercial_status"]},
+    {"id":"technology", "reference":"FixtureChip은 HBM을 탑재한 NPU를 개발한다.", "response":"FixtureChip은 HBM을 탑재한 NPU를 개발한다.", "expected":"verified", "tags":["technology"]},
+    {"id":"poc", "reference":"FixtureChip 고객 PoC가 진행 중이다. 유료 계약은 미공개다.", "response":"FixtureChip은 유료 계약을 체결했다.", "expected":"unverifiable", "tags":["commercial_status"]},
+    {"id":"poc_contradiction", "reference":"FixtureChip은 PoC만 진행 중이며 아직 계약을 체결하지 않았다.", "response":"FixtureChip은 유료 계약을 체결했다.", "expected":"contradicted", "tags":["commercial_status"]}
+  ]
+}

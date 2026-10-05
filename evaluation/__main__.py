@@ -26,6 +26,7 @@ def main():
     evaluate.add_argument('--dataset-version')
     evaluate.add_argument('--reference-sha256')
     evaluate.add_argument('--model', default='gpt-4.1-mini')
+    evaluate.add_argument('--max-retries', type=int, default=0, help='metric별 adapter 재시도 횟수')
     evaluate.add_argument('--custom-factual', action='store_true', help='#23 독립 기준 3상태 판정 및 핵심 오류 검사')
     evaluate.add_argument('--reference-dataset', type=Path, help='--custom-factual에 사용할 #22와 동일한 검토 완료 데이터셋')
     evaluate.add_argument('--judge-model', default='gpt-4.1-mini')
@@ -52,6 +53,8 @@ def main():
         print(json.dumps({'valid': not errors, 'errors': errors}, ensure_ascii=False, indent=2))
         raise SystemExit(1 if errors else 0)
     from .ragas_adapter import RagasAdapter, evaluate_inputs
+    if args.max_retries < 0:
+        parser.error('--max-retries는 0 이상이어야 합니다.')
     if args.required_information and not args.custom_factual:
         parser.error('--required-information에는 --custom-factual이 필요합니다.')
     if args.custom_factual and (not args.stage_package or not args.reference_dataset):
@@ -108,7 +111,7 @@ def main():
         from .coverage import LangChainCoverageJudge
         coverage_judge = LangChainCoverageJudge.openai(args.coverage_model)
     result = asyncio.run(evaluate_inputs(
-        EvaluationStorage(directory.parent), directory.name, samples, RagasAdapter.openai(args.model),
+        EvaluationStorage(directory.parent), directory.name, samples, RagasAdapter.openai(args.model, max_retries=args.max_retries),
         dataset_version=args.dataset_version, reference_sha256=args.reference_sha256,
         input_sha256=manifest.input_snapshot.sha256, evidence_sha256=manifest.evidence_snapshot.sha256,
         previous_evaluation_id=args.previous_evaluation_id, resume_reason=args.resume_reason,

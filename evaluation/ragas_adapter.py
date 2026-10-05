@@ -6,7 +6,7 @@ import copy
 import json
 import math
 import os
-from importlib.metadata import version
+from importlib.metadata import version, PackageNotFoundError
 from pathlib import Path
 
 from langchain_core.callbacks import BaseCallbackHandler
@@ -17,7 +17,7 @@ from .recording import SnapshotPayload, digest, identifier, json_value, now
 from .storage import EvaluationStorage, _redact_value
 
 RAGAS_VERSION = '0.4.3'
-ADAPTER_VERSION = '0.5.0'
+ADAPTER_VERSION = '0.6.0'
 API_VERSION = 'SingleTurnSample.single_turn_ascore'
 KOREAN_INSTRUCTION = ('\n한국어 입력을 그대로 평가하세요. 숫자·통화·단위·시점·기업명과 비교 조건을 보존하고, '
                       'PoC·검증·계약·양산을 구분하세요. 이유와 분해된 주장은 한국어로 작성하되 JSON schema를 지키세요.')
@@ -65,6 +65,8 @@ class TraceCapture(BaseCallbackHandler):
 
 class RagasAdapter:
     def __init__(self, *, llm, model: ModelSettings, timeout_seconds=120.0, max_retries=0):
+        if type(max_retries) is not int or max_retries < 0 or not math.isfinite(timeout_seconds) or timeout_seconds <= 0:
+            raise ValueError('retries must be a non-negative integer and timeout must be positive/finite')
         os.environ['RAGAS_DO_NOT_TRACK'] = 'true'
         if version('ragas') != RAGAS_VERSION:
             raise RuntimeError(f'ragas=={RAGAS_VERSION} is required')
@@ -75,6 +77,9 @@ class RagasAdapter:
         from ragas.metrics._context_precision import LLMContextPrecisionWithReference
         self.sample_type = SingleTurnSample
         self.model, self.timeout_seconds, self.max_retries = model, timeout_seconds, max_retries
+        self.llm_adapter = type(llm).__module__ + '.' + type(llm).__qualname__
+        self.temperature_policy = {'single_completion': llm.get_temperature(1),
+                                   'multiple_completions': llm.get_temperature(2)} if hasattr(llm, 'get_temperature') else None
         self.metrics = {
             'factual_precision': FactualCorrectness(llm=llm, mode='precision', atomicity='high', coverage='high'),
             'factual_recall': FactualCorrectness(llm=llm, mode='recall', atomicity='high', coverage='high'),
@@ -104,9 +109,9 @@ class RagasAdapter:
         from langchain_openai import ChatOpenAI
         from ragas.llms import LangchainLLMWrapper
         from ragas.run_config import RunConfig
-        model = ModelSettings(provider='openai', model=model_name, temperature=0.0,
+        model = ModelSettings(provider='openai', model=model_name, temperature=0.01,
                               max_retries=0, timeout_seconds=120)
-        llm = LangchainLLMWrapper(ChatOpenAI(model=model_name, temperature=0, max_retries=0, timeout=120),
+        llm = LangchainLLMWrapper(ChatOpenAI(model=model_name, temperature=0.01, max_retries=0, timeout=120),
                                  run_config=RunConfig(max_retries=1, timeout=120))
         return cls(llm=llm, model=model, max_retries=max_retries)
 
@@ -128,6 +133,8 @@ class RagasAdapter:
                     'metrics': [m.model_dump(mode='json') for m in metric_configs],
                     'max_retries': self.max_retries, 'cache_enabled': False}
         runtime_settings = {'sample_timeout_seconds': self.timeout_seconds,
+                            'llm_temperature_policy': self.temperature_policy,
+                            'korean_prompt_method': 'explicit_instruction_and_language_metadata; English few-shot examples retained',
                             'input_lineage_policy': 'actual-request-query-v2',
                             'adapter_max_retries': self.max_retries,
                             'library_retry_attempts': getattr(getattr(next(iter(self.metrics.values())).llm, 'run_config', None), 'max_retries', None),
@@ -135,6 +142,14 @@ class RagasAdapter:
                             'library_metric_retries': {name: getattr(metric, 'max_retries', None)
                                                        for name, metric in self.metrics.items()}}
         storage.write_snapshot(directory, 'adapter_settings.json', SnapshotPayload(data=runtime_settings))
+        dependencies = {}
+        for package in ('ragas', 'langchain-core', 'langchain-openai', 'openai', 'pydantic'):
+            try:
+                dependencies[package] = version(package)
+            except PackageNotFoundError:
+                dependencies[package] = 'not-installed'
+        settings.update(llm_adapter=self.llm_adapter, dependencies=dependencies,
+                        runtime_settings=runtime_settings)
         hash_settings = copy.deepcopy(settings)
         hash_settings['runtime_settings'] = runtime_settings
         for metric in hash_settings['metrics']:
@@ -167,7 +182,7 @@ class RagasAdapter:
                 value = float(raw)
                 row['returned_score'] = value if math.isfinite(value) else None
                 if not math.isfinite(value):
-                    status, value, reason = 'completed', None, 'RAGAS returned an undefined score (NaN/Inf)'
+                    status, value, reason = 'error', None, 'RAGAS returned an undefined score (NaN/Inf)'
                 elif not 0 <= value <= 1:
                     raise ValueError('RAGAS score outside 0..1')
                 else:
@@ -325,6 +340,7 @@ async def evaluate_inputs(storage: EvaluationStorage, run_id: str, samples: list
         for doc in grounding_bundle['documents'].values():
             doc.snapshot = storage.write_text(directory, identifier('grounding_document')+'.txt',doc.text,media_type='text/plain')
             storage.append_jsonl(directory,'grounding_documents.jsonl',doc)
+    ragas_clock = __import__('time').monotonic()
     for original in samples:
         sample = original.model_copy(update={'evaluation_id': evaluation_id})
         storage.append_jsonl(directory, 'ragas_samples.jsonl', sample)
@@ -357,6 +373,7 @@ async def evaluate_inputs(storage: EvaluationStorage, run_id: str, samples: list
                                                       SnapshotPayload(data=trace.raw_response))
         storage.append_jsonl(directory, 'ragas_traces.jsonl', trace)
         results.append(result)
+    ragas_duration = __import__('time').monotonic() - ragas_clock
     custom_assessments, custom_summaries = [], []
     if factual_judge is not None:
         from .factual import evaluate_custom, paired_results
@@ -433,8 +450,15 @@ async def evaluate_inputs(storage: EvaluationStorage, run_id: str, samples: list
                    and (sid not in grounding_by_sample or grounding_by_sample[sid]['status']=='completed')
                    and (sid not in coverage_by_sample or coverage_by_sample[sid]['status'] in {'completed', 'not_applicable'}) for sid in sample_ids)
     values = manifest.model_dump(mode='json')
+    from .models import RuntimeMetrics
     storage.write_json(directory, 'metrics.json', MetricsRecord(run_id=run_id, evaluation_id=evaluation_id,
-        scope='run', sample_count=count, ragas_results=results))
+        scope='run', sample_count=count, ragas_results=results,
+        ragas_runtime=RuntimeMetrics(purpose='ragas_evaluation',
+            duration_seconds=ragas_duration, unknown_reason='RAGAS provider usage/cost unavailable'),
+        custom_runtime=RuntimeMetrics(purpose='custom_evaluation',
+            duration_seconds=__import__('time').monotonic() - ragas_clock - ragas_duration,
+            unknown_reason='custom provider usage/cost unavailable')
+            if any(j is not None for j in (factual_judge, support_judge, coverage_judge)) else None))
     event('end', details={'scope': 'evaluation', 'completed_sample_count': complete})
     values.update(ended_at=now(), duration_seconds=__import__('time').monotonic()-clock, completed_sample_count=complete,
                   quality_evaluation_status='completed' if complete == count and coverage_scope_complete else ('partial' if complete else 'failed'))

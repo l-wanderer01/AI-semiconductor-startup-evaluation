@@ -80,7 +80,7 @@ class RagasAdapterTests(unittest.TestCase):
                 if isinstance(self.value, Exception):
                     raise self.value
                 return self.value
-        for value, status, expected in [(0.0, 'completed', 0.0), (float('nan'), 'completed', None),
+        for value, status, expected in [(0.0, 'completed', 0.0), (float('nan'), 'error', None),
                                         (ValueError('API failure'), 'error', None)]:
             adapter.metrics['factual_precision'] = Score(value)
             adapter.max_retries = 1
@@ -98,6 +98,10 @@ class RagasAdapterTests(unittest.TestCase):
             run = storage.create_run('run_1')
             directory = storage.create_evaluation('run_1', 'eval_1')
             config = self.adapter().configuration(storage, directory)
+            self.assertEqual(config.dependencies['ragas'], '0.4.3')
+            self.assertTrue(config.llm_adapter.endswith('FixtureLLM'))
+            self.assertEqual(config.runtime_settings['prompt_parse_retries'], 3)
+            self.assertEqual(config.runtime_settings['llm_temperature_policy']['single_completion'], 0.01)
             self.assertEqual(config.ragas_version, '0.4.3')
             self.assertEqual({m.language for m in config.metrics}, {'ko'})
             for metric in config.metrics:

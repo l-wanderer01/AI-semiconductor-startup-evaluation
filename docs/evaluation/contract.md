@@ -428,6 +428,8 @@ evaluation_runs/<run_id>/evaluations/<evaluation_id>/
 - run.json은 실행 중 임시 파일 작성 후 원자적 교체로 갱신한다.
 - 정상 종료 또는 실패 확정 후 원본 실행 디렉터리의 파일을 동결한다.
   evaluations/ 아래에 새로운 평가 디렉터리를 추가하는 것은 허용한다.
+  #27 사람 검토는 reviews/<evaluation_id>.jsonl에 별도 append-only 이력으로 추가한다.
+  동결된 생성·자동 평가 파일은 수정하지 않는다.
 - 평가 중에는 evaluation.json을 원자적 교체로 갱신하고 JSONL에 이력을 추가한다.
   평가가 completed/partial/failed로 종료되면 해당 평가 디렉터리의 파일을 동결한다.
 - 중단 시 이미 기록된 이벤트와 산출물을 보존한다.
@@ -527,6 +529,7 @@ metric별 실제 프롬프트와 지원 한계는 [구현 기록](issue20.md)에
 | #23 판정 정책 independent-three-state-v1 | 독립 기준 자료의 3상태·핵심 오류·미완료 집계 및 RAGAS precision/recall 연결 | [정책·사용·표본 검토](issue23.md), 실제 사람 검토 및 baseline 평가 대기 |
 | #24 실제 입력 계보 actual-request-query-v2 | 원문/전달 문맥 지지와 인용을 구분하고 실제 검색 query·순위에 진단을 연결 | [정책·사용·검증](issue24.md), 실제 baseline 및 사람 표본 검토 대기 |
 | #25 필수 항목 fixed-required-information-v1 / adapter 0.5.0 | 고정 적용 항목·원문 rubric 검사와 RAGAS recall을 독립 저장, 미연결 범위 보존 | [정책·사용·검증](issue25.md), 실제 baseline 및 사람 표본 검토 대기 |
+| #27 review-v1 / adapter 0.6.0 | 의존성·adapter·runtime 설정 고정, 별도 사람 수정 이력·층화 검토·라벨별 성능·전후 재평가, NaN/Inf 미완료 처리 | [검토·재평가·한계](issue27.md), 실제 유료 모델 및 사람 라벨 검증 대기 |
 
 ## 버전별 규칙 정합성 (#26)
 
