@@ -1,10 +1,10 @@
 # Agent 평가 계약
 
 - 계약 버전: 0.1.0
-- 관련 이슈: #19, #20
+- 관련 이슈: #19, #20, #21
 - 작성자: l-wanderer01
 - 최종 수정일: 2026.10.05
-- 상태: #20 구현에 적용 (후속 데이터셋·비용 정책은 미정 사항 참조)
+- 상태: #20 구현에 적용, #21 데이터셋 계약 추가 (실제 reference 사람 검토 대기)
 
 ## 1. 목적과 범위
 
@@ -502,7 +502,13 @@ metric별 실제 프롬프트와 지원 한계는 [구현 기록](issue20.md)에
 - RAGAS 채택 버전과 API: 0.4.3 / SingleTurnSample.single_turn_ascore로 확정하고 호환성 테스트를 추가했다.
 - metric별 빈 문맥 및 trace: 빈 적용 대상은 N/A, 공개 callbacks 원응답을 보존한다. raw/custom claim 대응과 분모 추출은 미지원이다.
 - 경로별 workflow manifest와 필수 산출물 목록: evaluation/workflow.py와 issue20.md에 확정했다.
-- company_id와 reference_id 관리 방식: #21 데이터셋 구축에서 확정한다.
+- company_id는 현재 호출 기록의 기업명과 정확히 일치하는 고정 ID를 데이터셋에 저장한다.
+  최초 실제 자료는 Groq, Tenstorrent를 사용한다. 명칭/동일 기업 병합이 바뀌면 새 데이터셋 버전과 명시적인 ID 대응이 필요하다.
+- reference_id와 fact_id는 case/논리적 사실별로 부여하고, dataset 버전 및 내용 해시와 함께 식별한다.
+  의미가 다른 사실은 새 ID를 부여한다. 검토자·범위·시점·원문 변경은 새 버전으로 발행한다.
+- #21 데이터셋 파일 계약은 schema_version 0.2.0으로 구분하며 기존 run 계약 0.1.0을 변경하지 않는다.
+  verified 사실과 complete 범위 검토를 모두 충족한 released 데이터만 baseline 평가에 사용한다.
+  실제 기업 자료의 사람 검토는 아직 pending이다. [데이터셋 사용 절차](issue21.md)를 참조한다.
 - 가격표 출처와 버전 관리 방식: #28 비용 계측에서 확정한다.
 
 | 버전 | 변경 내용 | 이유 |

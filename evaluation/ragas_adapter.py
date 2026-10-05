@@ -188,7 +188,7 @@ class RagasAdapter:
 async def evaluate_inputs(storage: EvaluationStorage, run_id: str, samples: list[RagasSampleInput],
                           adapter: RagasAdapter, *, dataset_version: str,
                           reference_sha256: str, input_sha256: str, evidence_sha256: str,
-                          previous_evaluation_id=None, resume_reason=None):
+                          previous_evaluation_id=None, resume_reason=None, preparation_metadata=None):
     """불변 생성 run 아래 독립 평가를 만든다. 재개도 새 ID로 저장한다."""
     if not samples:
         raise ValueError('evaluation requires at least one sample')
@@ -218,6 +218,8 @@ async def evaluate_inputs(storage: EvaluationStorage, run_id: str, samples: list
                                   evidence_sha256=evidence_sha256, evaluator=configuration,
                                   started_at=now(), quality_evaluation_status='running', sample_count=count)
     storage.write_json(directory, 'evaluation.json', manifest)
+    if preparation_metadata is not None:
+        storage.write_json(directory, 'dataset_preparation.json', SnapshotPayload(data=preparation_metadata))
     results = []
     clock = __import__('time').monotonic()
     from .models import EventRecord

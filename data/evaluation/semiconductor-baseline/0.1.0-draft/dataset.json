@@ -1,0 +1,431 @@
+{
+  "schema_version": "0.2.0",
+  "purpose": "baseline",
+  "status": "draft",
+  "manifest": {
+    "dataset_id": "semiconductor-baseline",
+    "version": "0.1.0-draft",
+    "sha256": "4885f8ad8cb5f8aa50da7abe352370ea031b43326e56b5506f12dd160d308e12",
+    "created_at": "2026-10-05T04:42:11Z",
+    "reviewers": [],
+    "cases": [
+      {
+        "case_id": "groq_2024_round",
+        "company_id": "Groq",
+        "section_id": "business",
+        "as_of_date": "2026-10-05",
+        "user_input": "Groq의 2024년 8월 투자 라운드 단계와 해당 라운드 조달 금액을 설명하라.",
+        "evidence_snapshot": {
+          "path": "evidence/groq_2024_round.json",
+          "sha256": "43beefe1a8ade582d7ce794d9515f2fa23ca9fe187e06d30acecb84088df6732",
+          "schema_version": null,
+          "media_type": "application/json"
+        },
+        "reference_snapshot": {
+          "path": "references/groq_2024_round.json",
+          "sha256": "2dd94e8ae518fe440b1f94970b927cbc25f0815b3b223e880680a20d5d49dedd",
+          "schema_version": null,
+          "media_type": "application/json"
+        },
+        "reference_ids": [
+          "reference_groq_2024_round_1",
+          "reference_groq_2024_round_2"
+        ],
+        "required_item_ids": [
+          "required_groq_2024_round_1",
+          "required_groq_2024_round_2"
+        ],
+        "supported_metrics": [
+          "factual_precision",
+          "factual_recall",
+          "faithfulness",
+          "context_recall",
+          "context_precision"
+        ]
+      },
+      {
+        "case_id": "tenstorrent_2024_round",
+        "company_id": "Tenstorrent",
+        "section_id": "business",
+        "as_of_date": "2026-10-05",
+        "user_input": "Tenstorrent의 2024년 12월 2일 발표된 라운드 단계와 조달 금액을 하한 조건까지 설명하라.",
+        "evidence_snapshot": {
+          "path": "evidence/tenstorrent_2024_round.json",
+          "sha256": "5faca84ab2ec09322b99ba6f0ed9749d42ce83cdc79baa79429bd6ba085c4684",
+          "schema_version": null,
+          "media_type": "application/json"
+        },
+        "reference_snapshot": {
+          "path": "references/tenstorrent_2024_round.json",
+          "sha256": "ee0ca3a11917fba8b39b63f629a2ebdbedc2c6871ed4c8f236b2209aaa7caa96",
+          "schema_version": null,
+          "media_type": "application/json"
+        },
+        "reference_ids": [
+          "reference_tenstorrent_2024_round_1",
+          "reference_tenstorrent_2024_round_2"
+        ],
+        "required_item_ids": [
+          "required_tenstorrent_2024_round_1",
+          "required_tenstorrent_2024_round_2"
+        ],
+        "supported_metrics": [
+          "factual_precision",
+          "factual_recall",
+          "faithfulness",
+          "context_recall",
+          "context_precision"
+        ]
+      }
+    ]
+  },
+  "sources": [
+    {
+      "source_id": "source_groq_2024_round",
+      "company_ids": [
+        "Groq"
+      ],
+      "title": "Cisco 투자 참여를 대리한 Fenwick의 거래 발표",
+      "url": "https://www.fenwick.com/insights/experience/fenwick-represents-cisco-investments-in-groqs-640m-series-d-funding",
+      "published_date": "2024-08-05",
+      "collected_at": "2026-10-05T04:42:11Z",
+      "snapshot": {
+        "path": "sources/groq_2024_round.txt",
+        "sha256": "41be31824dd7cbc1af04612e2765b53817533c03e6ebafa8c87a9ee23709ffd0",
+        "schema_version": null,
+        "media_type": "text/plain"
+      },
+      "snapshot_kind": "original_excerpt",
+      "provenance": "primary_source",
+      "original_locator": "발표 제목 및 August 5, 2024 게시 날짜"
+    },
+    {
+      "source_id": "source_tenstorrent_2024_round",
+      "company_ids": [
+        "Tenstorrent"
+      ],
+      "title": "Tenstorrent가 배포한 Series D 발표",
+      "url": "https://www.prnewswire.com/news-releases/tenstorrent-closes-693m-of-series-d-funding-led-by-samsung-securities-and-afw-partners-302319584.html",
+      "published_date": "2024-12-02",
+      "collected_at": "2026-10-05T04:42:11Z",
+      "snapshot": {
+        "path": "sources/tenstorrent_2024_round.txt",
+        "sha256": "3a27292f43990b1b171aec06ccc0de6aca1079000a222dbfc70af322609db443",
+        "schema_version": null,
+        "media_type": "text/plain"
+      },
+      "snapshot_kind": "original_excerpt",
+      "provenance": "primary_source",
+      "original_locator": "첫 문단 closed over부터 $2B까지; Dec 02, 2024 게시 날짜"
+    }
+  ],
+  "facts": [
+    {
+      "fact_id": "fact_groq_2024_round_1",
+      "reference_id": "reference_groq_2024_round_1",
+      "company_id": "Groq",
+      "section_id": "business",
+      "statement": "Groq의 2024년 8월 발표된 투자 라운드는 Series D이다.",
+      "value": "Series D",
+      "unit": null,
+      "conditions": [
+        "2024년 8월 사건에 한정"
+      ],
+      "as_of_date": "2026-10-05",
+      "source_ids": [
+        "source_groq_2024_round"
+      ],
+      "source_locations": [
+        {
+          "snapshot": {
+            "path": "sources/groq_2024_round.txt",
+            "sha256": "41be31824dd7cbc1af04612e2765b53817533c03e6ebafa8c87a9ee23709ffd0",
+            "schema_version": null,
+            "media_type": "text/plain"
+          },
+          "start_offset": 0,
+          "end_offset": 69,
+          "quote": "Fenwick Represents Cisco Investments in Groq’s $640M Series D Funding"
+        }
+      ],
+      "critical": true,
+      "required_item_ids": [
+        "required_groq_2024_round_1"
+      ],
+      "review_status": "pending",
+      "reviewer": null,
+      "reviewed_at": null,
+      "category": "stage",
+      "source_as_of_date": "2024-08-05",
+      "review_kind": null
+    },
+    {
+      "fact_id": "fact_groq_2024_round_2",
+      "reference_id": "reference_groq_2024_round_2",
+      "company_id": "Groq",
+      "section_id": "business",
+      "statement": "Groq의 해당 Series D 라운드 조달 금액은 6억 4천만 미국 달러(USD 640,000,000)이다.",
+      "value": 640000000,
+      "unit": "USD",
+      "conditions": [
+        "해당 라운드 금액",
+        "누적 조달액·매출이 아님"
+      ],
+      "as_of_date": "2026-10-05",
+      "source_ids": [
+        "source_groq_2024_round"
+      ],
+      "source_locations": [
+        {
+          "snapshot": {
+            "path": "sources/groq_2024_round.txt",
+            "sha256": "41be31824dd7cbc1af04612e2765b53817533c03e6ebafa8c87a9ee23709ffd0",
+            "schema_version": null,
+            "media_type": "text/plain"
+          },
+          "start_offset": 0,
+          "end_offset": 69,
+          "quote": "Fenwick Represents Cisco Investments in Groq’s $640M Series D Funding"
+        }
+      ],
+      "critical": true,
+      "required_item_ids": [
+        "required_groq_2024_round_2"
+      ],
+      "review_status": "pending",
+      "reviewer": null,
+      "reviewed_at": null,
+      "category": "funding",
+      "source_as_of_date": "2024-08-05",
+      "review_kind": null
+    },
+    {
+      "fact_id": "fact_tenstorrent_2024_round_1",
+      "reference_id": "reference_tenstorrent_2024_round_1",
+      "company_id": "Tenstorrent",
+      "section_id": "business",
+      "statement": "Tenstorrent의 2024년 12월 2일 발표된 투자 라운드는 Series D이다.",
+      "value": "Series D",
+      "unit": null,
+      "conditions": [
+        "2024년 12월 2일 사건에 한정"
+      ],
+      "as_of_date": "2026-10-05",
+      "source_ids": [
+        "source_tenstorrent_2024_round"
+      ],
+      "source_locations": [
+        {
+          "snapshot": {
+            "path": "sources/tenstorrent_2024_round.txt",
+            "sha256": "3a27292f43990b1b171aec06ccc0de6aca1079000a222dbfc70af322609db443",
+            "schema_version": null,
+            "media_type": "text/plain"
+          },
+          "start_offset": 0,
+          "end_offset": 80,
+          "quote": "closed over $693M in its Series D funding round at a pre-money valuation of $2B."
+        }
+      ],
+      "critical": true,
+      "required_item_ids": [
+        "required_tenstorrent_2024_round_1"
+      ],
+      "review_status": "pending",
+      "reviewer": null,
+      "reviewed_at": null,
+      "category": "stage",
+      "source_as_of_date": "2024-12-02",
+      "review_kind": null
+    },
+    {
+      "fact_id": "fact_tenstorrent_2024_round_2",
+      "reference_id": "reference_tenstorrent_2024_round_2",
+      "company_id": "Tenstorrent",
+      "section_id": "business",
+      "statement": "Tenstorrent는 해당 Series D 라운드에서 6억 9,300만 미국 달러를 초과하는 금액을 조달했다고 발표했다.",
+      "value": 693000000,
+      "unit": "USD",
+      "conditions": [
+        "strictly_greater_than",
+        "해당 라운드 금액",
+        "기업 발표이며 감사된 매출이 아님"
+      ],
+      "as_of_date": "2026-10-05",
+      "source_ids": [
+        "source_tenstorrent_2024_round"
+      ],
+      "source_locations": [
+        {
+          "snapshot": {
+            "path": "sources/tenstorrent_2024_round.txt",
+            "sha256": "3a27292f43990b1b171aec06ccc0de6aca1079000a222dbfc70af322609db443",
+            "schema_version": null,
+            "media_type": "text/plain"
+          },
+          "start_offset": 0,
+          "end_offset": 80,
+          "quote": "closed over $693M in its Series D funding round at a pre-money valuation of $2B."
+        }
+      ],
+      "critical": true,
+      "required_item_ids": [
+        "required_tenstorrent_2024_round_2"
+      ],
+      "review_status": "pending",
+      "reviewer": null,
+      "reviewed_at": null,
+      "category": "funding",
+      "source_as_of_date": "2024-12-02",
+      "review_kind": null
+    }
+  ],
+  "required_items": [
+    {
+      "required_item_id": "required_groq_2024_round_1",
+      "version": "0.1.0-draft",
+      "company_id": "Groq",
+      "section_id": "business",
+      "description": "stage: Groq의 2024년 8월 발표된 투자 라운드는 Series D이다.",
+      "accuracy_rule": "수치·단위·통화·하한 표현을 보존하고 PoC/계약/양산과 거래금액/매출을 구분한다.",
+      "freshness_rule": "질문의 사건 시점과 자료 기준일을 명시한다. 과거 라운드를 현재 단계로 일반화하지 않는다.",
+      "evidence_rule": "source_id 및 고정 원문 구간으로 뒷받침하고 비교 조건을 생략하지 않는다.",
+      "applicability_rule": "이 기업·영역·질문 범위에만 적용한다. 다른 기업 또는 전체 투자보고서의 정답으로 사용하지 않는다.",
+      "unknown_information_policy": "원문에 없는 값은 0이나 사실 없음으로 단정하지 않고 미확인이라고 응답한다.",
+      "reference_ids": [
+        "reference_groq_2024_round_1"
+      ],
+      "critical": true,
+      "applicability": "applicable",
+      "not_applicable_reason": null,
+      "expected_unknown_response": "제공된 자료로는 해당 수치 또는 상태를 확인할 수 없어 추가 근거가 필요합니다."
+    },
+    {
+      "required_item_id": "required_groq_2024_round_2",
+      "version": "0.1.0-draft",
+      "company_id": "Groq",
+      "section_id": "business",
+      "description": "funding: Groq의 해당 Series D 라운드 조달 금액은 6억 4천만 미국 달러(USD 640,000,000)이다.",
+      "accuracy_rule": "수치·단위·통화·하한 표현을 보존하고 PoC/계약/양산과 거래금액/매출을 구분한다.",
+      "freshness_rule": "질문의 사건 시점과 자료 기준일을 명시한다. 과거 라운드를 현재 단계로 일반화하지 않는다.",
+      "evidence_rule": "source_id 및 고정 원문 구간으로 뒷받침하고 비교 조건을 생략하지 않는다.",
+      "applicability_rule": "이 기업·영역·질문 범위에만 적용한다. 다른 기업 또는 전체 투자보고서의 정답으로 사용하지 않는다.",
+      "unknown_information_policy": "원문에 없는 값은 0이나 사실 없음으로 단정하지 않고 미확인이라고 응답한다.",
+      "reference_ids": [
+        "reference_groq_2024_round_2"
+      ],
+      "critical": true,
+      "applicability": "applicable",
+      "not_applicable_reason": null,
+      "expected_unknown_response": "제공된 자료로는 해당 수치 또는 상태를 확인할 수 없어 추가 근거가 필요합니다."
+    },
+    {
+      "required_item_id": "required_tenstorrent_2024_round_1",
+      "version": "0.1.0-draft",
+      "company_id": "Tenstorrent",
+      "section_id": "business",
+      "description": "stage: Tenstorrent의 2024년 12월 2일 발표된 투자 라운드는 Series D이다.",
+      "accuracy_rule": "수치·단위·통화·하한 표현을 보존하고 PoC/계약/양산과 거래금액/매출을 구분한다.",
+      "freshness_rule": "질문의 사건 시점과 자료 기준일을 명시한다. 과거 라운드를 현재 단계로 일반화하지 않는다.",
+      "evidence_rule": "source_id 및 고정 원문 구간으로 뒷받침하고 비교 조건을 생략하지 않는다.",
+      "applicability_rule": "이 기업·영역·질문 범위에만 적용한다. 다른 기업 또는 전체 투자보고서의 정답으로 사용하지 않는다.",
+      "unknown_information_policy": "원문에 없는 값은 0이나 사실 없음으로 단정하지 않고 미확인이라고 응답한다.",
+      "reference_ids": [
+        "reference_tenstorrent_2024_round_1"
+      ],
+      "critical": true,
+      "applicability": "applicable",
+      "not_applicable_reason": null,
+      "expected_unknown_response": "제공된 자료로는 해당 수치 또는 상태를 확인할 수 없어 추가 근거가 필요합니다."
+    },
+    {
+      "required_item_id": "required_tenstorrent_2024_round_2",
+      "version": "0.1.0-draft",
+      "company_id": "Tenstorrent",
+      "section_id": "business",
+      "description": "funding: Tenstorrent는 해당 Series D 라운드에서 6억 9,300만 미국 달러를 초과하는 금액을 조달했다고 발표했다.",
+      "accuracy_rule": "수치·단위·통화·하한 표현을 보존하고 PoC/계약/양산과 거래금액/매출을 구분한다.",
+      "freshness_rule": "질문의 사건 시점과 자료 기준일을 명시한다. 과거 라운드를 현재 단계로 일반화하지 않는다.",
+      "evidence_rule": "source_id 및 고정 원문 구간으로 뒷받침하고 비교 조건을 생략하지 않는다.",
+      "applicability_rule": "이 기업·영역·질문 범위에만 적용한다. 다른 기업 또는 전체 투자보고서의 정답으로 사용하지 않는다.",
+      "unknown_information_policy": "원문에 없는 값은 0이나 사실 없음으로 단정하지 않고 미확인이라고 응답한다.",
+      "reference_ids": [
+        "reference_tenstorrent_2024_round_2"
+      ],
+      "critical": true,
+      "applicability": "applicable",
+      "not_applicable_reason": null,
+      "expected_unknown_response": "제공된 자료로는 해당 수치 또는 상태를 확인할 수 없어 추가 근거가 필요합니다."
+    }
+  ],
+  "case_reviews": [
+    {
+      "case_id": "groq_2024_round",
+      "scope_description": "Groq의 2024년 8월 투자 라운드 단계와 해당 라운드 조달 금액을 설명하라. 이외의 최신 정보·전체 보고서는 이 reference 범위 밖이다.",
+      "completeness": "pending",
+      "reviewer": null,
+      "reviewed_at": null,
+      "review_kind": null,
+      "relevant_source_ids": [
+        "source_groq_2024_round"
+      ],
+      "retrieval_applicability_reason": "검색 호출과 이 원문 관련성 기준이 연결된 경우에만 적용한다.",
+      "tags": [
+        "currency",
+        "funding",
+        "historical_date"
+      ],
+      "expected_assertions": [
+        {
+          "statement": "Groq가 해당 라운드에서 6,400만 달러를 조달했다.",
+          "expected_verdict": "contradicted",
+          "reason": "640 million을 64 million으로 잘못 변환했다.",
+          "fact_ids": [
+            "fact_groq_2024_round_1",
+            "fact_groq_2024_round_2"
+          ]
+        }
+      ],
+      "expected_route": null,
+      "route_reason": null
+    },
+    {
+      "case_id": "tenstorrent_2024_round",
+      "scope_description": "Tenstorrent의 2024년 12월 2일 발표된 라운드 단계와 조달 금액을 하한 조건까지 설명하라. 이외의 최신 정보·전체 보고서는 이 reference 범위 밖이다.",
+      "completeness": "pending",
+      "reviewer": null,
+      "reviewed_at": null,
+      "review_kind": null,
+      "relevant_source_ids": [
+        "source_tenstorrent_2024_round"
+      ],
+      "retrieval_applicability_reason": "검색 호출과 이 원문 관련성 기준이 연결된 경우에만 적용한다.",
+      "tags": [
+        "time",
+        "funding",
+        "lower_bound"
+      ],
+      "expected_assertions": [
+        {
+          "statement": "Tenstorrent가 2024년 8월에 정확히 6억 9,300만 달러를 조달했다.",
+          "expected_verdict": "contradicted",
+          "reason": "발표 날짜와 초과 조건이 다르다.",
+          "fact_ids": [
+            "fact_tenstorrent_2024_round_1",
+            "fact_tenstorrent_2024_round_2"
+          ]
+        }
+      ],
+      "expected_route": null,
+      "route_reason": null
+    }
+  ],
+  "inventory": {
+    "evidence/groq_2024_round.json": "43beefe1a8ade582d7ce794d9515f2fa23ca9fe187e06d30acecb84088df6732",
+    "evidence/tenstorrent_2024_round.json": "5faca84ab2ec09322b99ba6f0ed9749d42ce83cdc79baa79429bd6ba085c4684",
+    "references/groq_2024_round.json": "2dd94e8ae518fe440b1f94970b927cbc25f0815b3b223e880680a20d5d49dedd",
+    "references/tenstorrent_2024_round.json": "ee0ca3a11917fba8b39b63f629a2ebdbedc2c6871ed4c8f236b2209aaa7caa96",
+    "sources/groq_2024_round.txt": "41be31824dd7cbc1af04612e2765b53817533c03e6ebafa8c87a9ee23709ffd0",
+    "sources/tenstorrent_2024_round.txt": "3a27292f43990b1b171aec06ccc0de6aca1079000a222dbfc70af322609db443"
+  }
+}

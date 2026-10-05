@@ -1,0 +1,1 @@
+가상기업 FixtureChip 내부 시험: ResNet-50 INT8 batch=1, 동일 전력 10W에서 비교기 A 대비 처리량 2배. LLM 또는 FP16 측정은 없음.
