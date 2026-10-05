@@ -22,6 +22,9 @@ def service_initialization(function):
         rec = RunRecorder(root=Path(base_dir) / 'evaluation_runs', execution_path='agents',
                           inputs={'domain': config.domain}, settings=service_settings(config),
                           requested_formats=['md', 'json'], repository=Path(base_dir))
+        from .runtime import REQUEST_START
+        if REQUEST_START.get() is not None:
+            rec.usage.clock, rec.usage.started_at = REQUEST_START.get()
         self._evaluation_recorder = rec
         try:
             with rec.activate():
@@ -63,6 +66,7 @@ def service_execution(function):
                     state = rec.snapshot('state_original.json', result)
                     rec.artifact(Path(state.path), 'state_artifact.json', 'json')
                     span['output'] = {'artifacts': [a.model_dump(mode='json') for a in rec.artifacts]}
+            rec.generation_complete()
             rec.finish(result=result)
             return result
         except BaseException as exc:
@@ -84,13 +88,24 @@ def observed_search(*, web=False):
                 category = kwargs['category']
                 key = f'{category}__{query}'.replace('/', '_').replace(' ', '_')[:180]
                 cache_hit = (settings.research_cache_dir / f'{key}.json').exists() if self.available else None
+            import time
+            from .runtime import utc
+            start, clock = utc(), time.monotonic()
             with rec.span(type(self).__name__ + '_search', {'query': query, 'options': kwargs}, kind='retrieval') as span:
                 try:
                     result = function(self, query, *args, **kwargs)
                 except Exception as exc:
+                    if web and self.available:
+                        rec.usage.add(invocation_id=span['record'].invocation_id, call_type='search', provider='tavily',
+                            attempt=1, cache_hit=cache_hit, status='failed', started_at=start, ended_at=utc(),
+                            duration_seconds=time.monotonic()-clock)
                     rec.retrieval(query, [], span['record'], web=web, cache_hit=cache_hit,
                                   error=error_record(exc, span['record'].invocation_id))
                     raise
+                if web and self.available:
+                    rec.usage.add(invocation_id=span['record'].invocation_id, call_type='search', provider='tavily',
+                        attempt=1, cache_hit=cache_hit, status='succeeded', started_at=start, ended_at=utc(),
+                        duration_seconds=time.monotonic()-clock)
                 span['output'] = json_value(result)
                 rec.retrieval(query, result, span['record'], web=web, cache_hit=cache_hit)
                 if web and not self.available:

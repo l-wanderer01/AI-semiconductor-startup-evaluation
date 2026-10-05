@@ -20,7 +20,8 @@ from sentence_transformers import SentenceTransformer
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 from evaluation.integration import observed_search
-from evaluation.recording import CURRENT
+from evaluation.recording import CURRENT, traced
+from evaluation.runtime import local_embedding
 
 from .config import settings
 from .models import ResearchEvidence
@@ -85,6 +86,8 @@ def get_dense_embedder() -> SentenceTransformer:
     return _dense_embedder
 
 
+@traced('dense_embedding')
+@local_embedding
 def _dense_vectors(texts: List[str]) -> List[List[float]]:
     embeddings = get_dense_embedder().encode(texts, normalize_embeddings=True)
     return [list(vector) for vector in embeddings]

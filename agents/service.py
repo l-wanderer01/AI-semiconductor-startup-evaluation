@@ -18,6 +18,7 @@ from langgraph.graph import END, StateGraph
 
 from evaluation.integration import service_initialization, service_execution
 from evaluation.recording import CURRENT, company_scope, traced
+from evaluation.runtime import local_embedding
 
 from .models import (
     AgentEvaluation,
@@ -26,6 +27,16 @@ from .models import (
     GraphState,
     ServiceConfig,
 )
+
+
+class ObservedEmbeddings(HuggingFaceEmbeddings):
+    @local_embedding
+    def embed_documents(self, texts):
+        return super().embed_documents(texts)
+
+    @local_embedding
+    def embed_query(self, text):
+        return super().embed_query(text)
 
 
 class InvestmentAnalysisService:
@@ -49,7 +60,7 @@ class InvestmentAnalysisService:
             chunk_size=self.config.chunk_size,
             chunk_overlap=self.config.chunk_overlap,
         ).split_documents(self.documents)
-        self.embeddings = HuggingFaceEmbeddings(
+        self.embeddings = ObservedEmbeddings(
             model_name=self.config.embedding_model,
             encode_kwargs={"normalize_embeddings": True},
             query_encode_kwargs={"normalize_embeddings": True},

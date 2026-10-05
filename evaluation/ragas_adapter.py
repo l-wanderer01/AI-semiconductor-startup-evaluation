@@ -15,6 +15,7 @@ from .models import (EvaluationManifest, EvaluatorConfiguration, MetricConfigura
                      PromptVersion, RagasMetricResult, RagasSampleInput, RagasTraceRecord)
 from .recording import SnapshotPayload, digest, identifier, json_value, now
 from .storage import EvaluationStorage, _redact_value
+from .runtime import SCOPE, UsageCallback, UsageCollector
 
 RAGAS_VERSION = '0.4.3'
 ADAPTER_VERSION = '0.6.0'
@@ -50,14 +51,33 @@ def input_problem(sample: RagasSampleInput):
 
 class TraceCapture(BaseCallbackHandler):
     """공개 callback에서 제공된 원응답·판정만 보존한다. 분모는 추정하지 않는다."""
-    def __init__(self):
+    def __init__(self, usage=None):
         self.rows = []
+        self.usage = usage
+
+    def on_chat_model_start(self, serialized, messages, *, run_id, **kwargs):
+        if self.usage:
+            self.usage.on_chat_model_start(serialized, messages, run_id=run_id, **kwargs)
+
+    def on_llm_start(self, serialized, prompts, *, run_id, **kwargs):
+        if self.usage:
+            self.usage.on_llm_start(serialized, prompts, run_id=run_id, **kwargs)
+
+    def on_retry(self, retry_state, *, run_id, **kwargs):
+        if self.usage:
+            self.usage.on_retry(retry_state, run_id=run_id, **kwargs)
+
+    def on_llm_error(self, error, *, run_id, **kwargs):
+        if self.usage:
+            self.usage.on_llm_error(error, run_id=run_id, **kwargs)
     def on_chain_start(self, serialized, inputs, *, run_id, parent_run_id=None, **kwargs):
         self.rows.append({'kind': 'chain_start', 'run_id': str(run_id), 'parent_run_id': str(parent_run_id) if parent_run_id else None,
                           'name': (serialized or {}).get('name'), 'input': json_value(inputs)})
     def on_chain_end(self, outputs, *, run_id, **kwargs):
         self.rows.append({'kind': 'chain_end', 'run_id': str(run_id), 'output': json_value(outputs)})
     def on_llm_end(self, response, *, run_id, **kwargs):
+        if self.usage:
+            self.usage.on_llm_end(response, run_id=run_id, **kwargs)
         self.rows.append({'kind': 'llm_end', 'run_id': str(run_id), 'response': json_value(response)})
     def on_chain_error(self, error, *, run_id, **kwargs):
         self.rows.append({'kind': 'chain_error', 'run_id': str(run_id), 'error': str(error)})
@@ -172,7 +192,10 @@ class RagasAdapter:
         value, reason, status = None, None, 'error'
         invocation = None
         for attempt in range(1, self.max_retries + 2):
-            capture = TraceCapture()
+            collector = SCOPE.get()
+            usage = UsageCallback(collector, self.model, sample.metric_name.value, attempt) if collector else None
+            capture = TraceCapture(usage)
+            call_clock = __import__('time').monotonic()
             previous = invocation
             invocation = identifier('eval_inv')
             row = {'invocation_id': invocation, 'previous_invocation_id': previous,
@@ -190,6 +213,14 @@ class RagasAdapter:
             except Exception as exc:
                 status, value, reason = 'error', None, f'{type(exc).__name__}: {exc}'
                 row['error'] = reason
+            if usage:
+                usage.close()
+                if not usage.count:
+                    # Callback-unsupported adapters are an unknown operation, never free evaluation.
+                    collector.add(invocation_id=invocation, call_type='llm', provider=self.model.provider,
+                        model=self.model.model, attempt=attempt, metric_name=sample.metric_name.value,
+                        status='unknown', started_at=row['started_at'], ended_at=now(),
+                        duration_seconds=__import__('time').monotonic()-call_clock)
             row.update(ended_at=now().isoformat(), callbacks=capture.rows)
             attempts.append(row)
             if status == 'completed':
@@ -204,12 +235,12 @@ class RagasAdapter:
         return result, trace
 
 
-async def evaluate_inputs(storage: EvaluationStorage, run_id: str, samples: list[RagasSampleInput],
+async def _evaluate_inputs_impl(storage: EvaluationStorage, run_id: str, samples: list[RagasSampleInput],
                           adapter: RagasAdapter, *, dataset_version: str,
                           reference_sha256: str, input_sha256: str, evidence_sha256: str,
                           previous_evaluation_id=None, resume_reason=None, preparation_metadata=None, stage_package=None,
                           factual_judge=None, reference_dataset_directory=None, allow_synthetic=False,
-                          support_judge=None, coverage_judge=None):
+                          support_judge=None, coverage_judge=None, _runtime=None):
     """불변 생성 run 아래 독립 평가를 만든다. 재개도 새 ID로 저장한다."""
     if coverage_judge is not None and factual_judge is None:
         raise ValueError('required information coverage requires independent custom factual evaluation')
@@ -266,6 +297,9 @@ async def evaluate_inputs(storage: EvaluationStorage, run_id: str, samples: list
             raise ValueError('generation rule sources failed integrity checks: ' + '; '.join(rule_errors))
     evaluation_id = identifier('evaluation')
     directory = storage.create_evaluation(run_id, evaluation_id)
+    _runtime['directory'] = directory
+    for collector in (_runtime['ragas'], _runtime['custom']):
+        collector.evaluation_id = evaluation_id
     if rule_source.is_file():
         storage.write_json(directory, 'rule_conformance.json', SnapshotPayload(data={
             'run_id': run_id, 'evaluation_id': evaluation_id,
@@ -314,7 +348,6 @@ async def evaluate_inputs(storage: EvaluationStorage, run_id: str, samples: list
         values = manifest.model_dump(mode='json')
         values.update(quality_evaluation_status='failed', ended_at=now(), error=error_record(failure))
         storage.update_manifest(directory, 'evaluation.json', EvaluationManifest.model_validate(values))
-        storage.freeze(directory)
         raise failure
     if preparation_metadata is not None:
         storage.write_json(directory, 'dataset_preparation.json', SnapshotPayload(data=preparation_metadata))
@@ -341,6 +374,8 @@ async def evaluate_inputs(storage: EvaluationStorage, run_id: str, samples: list
             doc.snapshot = storage.write_text(directory, identifier('grounding_document')+'.txt',doc.text,media_type='text/plain')
             storage.append_jsonl(directory,'grounding_documents.jsonl',doc)
     ragas_clock = __import__('time').monotonic()
+    _runtime['ragas'].endpoint = None
+    _runtime['ragas'].clock, _runtime['ragas'].started_at = ragas_clock, now()
     for original in samples:
         sample = original.model_copy(update={'evaluation_id': evaluation_id})
         storage.append_jsonl(directory, 'ragas_samples.jsonl', sample)
@@ -355,7 +390,8 @@ async def evaluate_inputs(storage: EvaluationStorage, run_id: str, samples: list
                                     metric_name=sample.metric_name, raw_response={'attempts': []},
                                     mapping_status='unsupported', unavailable_reason=reason)
         else:
-            result, trace = await adapter.score(sample)
+            with _runtime['ragas'].activate():
+                result, trace = await adapter.score(sample)
         if stage_package is not None:
             from .ragas_claim_mapping import map_raw_claims
             records = map_raw_claims(trace, sample, custom_claims)
@@ -373,7 +409,10 @@ async def evaluate_inputs(storage: EvaluationStorage, run_id: str, samples: list
                                                       SnapshotPayload(data=trace.raw_response))
         storage.append_jsonl(directory, 'ragas_traces.jsonl', trace)
         results.append(result)
-    ragas_duration = __import__('time').monotonic() - ragas_clock
+    _runtime['ragas'].stop(all(r.evaluation_status in {'completed', 'not_applicable'} for r in results),
+                           'selected RAGAS metrics; after report delivery')
+    _runtime['custom'].endpoint = None
+    _runtime['custom'].clock, _runtime['custom'].started_at = __import__('time').monotonic(), now()
     custom_assessments, custom_summaries = [], []
     if factual_judge is not None:
         from .factual import evaluate_custom, paired_results
@@ -386,7 +425,6 @@ async def evaluate_inputs(storage: EvaluationStorage, run_id: str, samples: list
             values = manifest.model_dump(mode='json')
             values.update(quality_evaluation_status='failed', ended_at=now(), error=error_record(failure))
             storage.update_manifest(directory, 'evaluation.json', EvaluationManifest.model_validate(values))
-            storage.freeze(directory)
             raise
         storage.write_json(directory, 'independent_reference_dataset.json', SnapshotPayload(data=independent_dataset.model_dump(mode='json')))
         source_snapshots = []
@@ -412,7 +450,6 @@ async def evaluate_inputs(storage: EvaluationStorage, run_id: str, samples: list
             values=manifest.model_dump(mode='json')
             values.update(quality_evaluation_status='failed',ended_at=now(),error=error_record(failure))
             storage.update_manifest(directory,'evaluation.json',EvaluationManifest.model_validate(values))
-            storage.freeze(directory)
             raise
         for row in groundings:
             storage.append_jsonl(directory,'grounding_assessments.jsonl',row)
@@ -442,7 +479,6 @@ async def evaluate_inputs(storage: EvaluationStorage, run_id: str, samples: list
             values = manifest.model_dump(mode='json')
             values.update(quality_evaluation_status='failed', ended_at=now(), error=error_record(failure))
             storage.update_manifest(directory, 'evaluation.json', EvaluationManifest.model_validate(values))
-            storage.freeze(directory)
             raise
     custom_by_sample = {s['key']: s for s in custom_summaries if s['scope'] == 'sample'}
     complete = sum(all(r.evaluation_status in {'completed', 'not_applicable'} for r in results if r.sample_id == sid)
@@ -450,18 +486,55 @@ async def evaluate_inputs(storage: EvaluationStorage, run_id: str, samples: list
                    and (sid not in grounding_by_sample or grounding_by_sample[sid]['status']=='completed')
                    and (sid not in coverage_by_sample or coverage_by_sample[sid]['status'] in {'completed', 'not_applicable'}) for sid in sample_ids)
     values = manifest.model_dump(mode='json')
-    from .models import RuntimeMetrics
-    storage.write_json(directory, 'metrics.json', MetricsRecord(run_id=run_id, evaluation_id=evaluation_id,
+    _runtime['metrics'] = MetricsRecord(run_id=run_id, evaluation_id=evaluation_id,
         scope='run', sample_count=count, ragas_results=results,
-        ragas_runtime=RuntimeMetrics(purpose='ragas_evaluation',
-            duration_seconds=ragas_duration, unknown_reason='RAGAS provider usage/cost unavailable'),
-        custom_runtime=RuntimeMetrics(purpose='custom_evaluation',
-            duration_seconds=__import__('time').monotonic() - ragas_clock - ragas_duration,
-            unknown_reason='custom provider usage/cost unavailable')
-            if any(j is not None for j in (factual_judge, support_judge, coverage_judge)) else None))
+        ragas_runtime=_runtime['ragas'].summary(),
+        custom_runtime=_runtime['custom'].summary())
     event('end', details={'scope': 'evaluation', 'completed_sample_count': complete})
     values.update(ended_at=now(), duration_seconds=__import__('time').monotonic()-clock, completed_sample_count=complete,
                   quality_evaluation_status='completed' if complete == count and coverage_scope_complete else ('partial' if complete else 'failed'))
     storage.update_manifest(directory, 'evaluation.json', EvaluationManifest.model_validate(values))
-    storage.freeze(directory)
     return directory
+
+
+async def evaluate_inputs(storage, run_id, samples, adapter, **kwargs):
+    """Save independent usage/timings even when a metric or custom check fails."""
+    runtime = {'ragas': UsageCollector(run_id, 'ragas_evaluation'),
+               'custom': UsageCollector(run_id, 'custom_evaluation')}
+    # Failure before the corresponding phase starts has no measured phase duration.
+    for name in ('ragas', 'custom'):
+        runtime[name].endpoint = dict(duration_seconds=None, status='failed', boundary=name+' phase not started')
+    success, failure = False, None
+    try:
+        with runtime['custom'].activate():
+            directory = await _evaluate_inputs_impl(storage, run_id, samples, adapter, _runtime=runtime, **kwargs)
+        success = True
+        return directory
+    except BaseException as exc:
+        failure = exc
+        raise
+    finally:
+        directory = runtime.get('directory')
+        if directory:
+            manifest_path = directory / 'evaluation.json'
+            if manifest_path.exists():
+                manifest = EvaluationManifest.model_validate_json(manifest_path.read_text())
+                if not success and manifest.quality_evaluation_status == 'running':
+                    values = manifest.model_dump(mode='json')
+                    from .recording import error_record
+                    values.update(quality_evaluation_status='failed', ended_at=now(), error=error_record(failure))
+                    storage.update_manifest(directory, 'evaluation.json', EvaluationManifest.model_validate(values))
+            for name in ('ragas', 'custom'):
+                collector = runtime[name]
+                completed = success and (not manifest_path.exists() or manifest.quality_evaluation_status == 'completed')
+                collector.stop(completed, 'post-delivery ' + name + ' evaluation')
+                collector.save(storage, directory, name + '_runtime.json')
+            metrics = runtime.get('metrics') or MetricsRecord(
+                run_id=run_id, evaluation_id=directory.name, scope='run')
+            storage.write_json(directory, 'metrics.json', metrics.model_copy(update={
+                'ragas_runtime': runtime['ragas'].summary(), 'custom_runtime': runtime['custom'].summary()}))
+            if manifest_path.exists():
+                storage.freeze(directory)
+            elif failure:
+                from .recording import error_record
+                storage.write_json(directory, 'initialization_failure.json', error_record(failure))
