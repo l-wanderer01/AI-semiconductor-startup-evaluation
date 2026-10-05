@@ -79,11 +79,17 @@ def company_scope(company):
 class RunRecorder:
     def __init__(self, *, root: Path, execution_path: str, inputs, settings: dict,
                  requested_formats: list[str], repository: Path, role='baseline'):
+        from .experiment import EXPERIMENT, EXPERIMENT_RUNS
+        experiment = EXPERIMENT.get()
+        if experiment is not None:
+            role = experiment['role']
         from .runtime import UsageCollector
         self.start_clock = time.monotonic()
         self.started_at = now()
         self.storage = EvaluationStorage(root)
         self.directory = self.storage.create_run(identifier('run'))
+        if EXPERIMENT_RUNS.get() is not None:
+            EXPERIMENT_RUNS.get().append(str(self.directory))
         self.run_id = self.directory.name
         self.usage = UsageCollector(self.run_id, 'generation')
         self.usage.clock, self.usage.started_at = self.start_clock, self.started_at
@@ -102,6 +108,8 @@ class RunRecorder:
         self.path = execution_path
         self.repository = repository.resolve()
         self.input_ref = self.snapshot('input_snapshot.json', inputs)
+        if experiment is not None:
+            self.snapshot('experiment.json', experiment)
         configuration = self.snapshot('settings_snapshot.json', settings)
         packages = {}
         for name in ['pydantic', 'langchain', 'langchain-core', 'langchain-openai', 'langgraph',

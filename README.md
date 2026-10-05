@@ -267,3 +267,10 @@
 - 장재훈 : LangGraph 설계, start-up search, Agent Pattern 설계
 - 김유빈 : 아키텍처 설계, 기술 조사, Agent Pattern 설계
 - 양예원 : 투자 판단 평가 기준 설계, 투자 보고서 template 작성, 조사 agent prompting 작성
+
+## 14. 평가 실행 및 전후 비교
+
+제품 품질 변경 전 원본 실행을 보존하고 동일 사례를 재평가하는 방법은
+[baseline·frozen/live·paired 비교 실행 안내](docs/evaluation/issue29.md)를 참조하세요.
+RAGAS 주 지표, 독립 사실·필수 정보·규칙 검사, 워크플로우 성공 여부,
+생성 비용·시간 및 평가 운영 비용·시간을 별도로 비교합니다.

@@ -23,7 +23,17 @@ def comparison(baseline_directory, after_directory):
         raise ValueError('paired comparison requires frozen evaluations')
     changed = baseline.input_sha256 != after.input_sha256 or baseline.evidence_sha256 != after.evidence_sha256
     if changed and baseline.mode == 'isolated':
-        raise ValueError('isolated comparison requires identical input/evidence')
+        from .experiment import evidence_content
+        from .models import RunManifest
+        from .validation import validate_run
+        runs = [d.parent.parent for d in directories]
+        for run, evaluation in zip(runs, manifests):
+            source = RunManifest.model_validate_json((run / 'run.json').read_text())
+            if validate_run(run) or (evaluation.input_sha256, evaluation.evidence_sha256) != (
+                    source.input_snapshot.sha256, source.evidence_snapshot.sha256):
+                raise ValueError('isolated generation source integrity failed')
+        if baseline.input_sha256 != after.input_sha256 or evidence_content(runs[0]) != evidence_content(runs[1]):
+            raise ValueError('isolated comparison requires identical input/evidence content')
     return {'schema_version': 'paired-evaluation-v1', 'baseline_run_id': baseline.run_id,
             'after_run_id': after.run_id, 'baseline_evaluation_id': baseline.evaluation_id,
             'after_evaluation_id': after.evaluation_id,

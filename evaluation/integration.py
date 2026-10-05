@@ -79,11 +79,19 @@ def observed_search(*, web=False):
     def decorate(function):
         @functools.wraps(function)
         def wrapped(self, query, *args, **kwargs):
+            from .experiment import SEARCH
+            replay = SEARCH.get() if web else None
+            def execute():
+                if replay is not None:
+                    from investment_pipeline.models import ResearchEvidence
+                    return [ResearchEvidence.model_validate(row) for row in replay.lookup(
+                        type(self).__name__ + '_search', query, args, kwargs)]
+                return function(self, query, *args, **kwargs)
             rec = CURRENT.get()
             if rec is None:
-                return function(self, query, *args, **kwargs)
+                return execute()
             cache_hit = None
-            if web:
+            if web and replay is None:
                 from investment_pipeline.config import settings
                 category = kwargs['category']
                 key = f'{category}__{query}'.replace('/', '_').replace(' ', '_')[:180]
@@ -91,24 +99,29 @@ def observed_search(*, web=False):
             import time
             from .runtime import utc
             start, clock = utc(), time.monotonic()
-            with rec.span(type(self).__name__ + '_search', {'query': query, 'options': kwargs}, kind='retrieval') as span:
+            with rec.span(type(self).__name__ + '_search', {'query': query, 'args': list(args), 'options': kwargs}, kind='retrieval') as span:
                 try:
-                    result = function(self, query, *args, **kwargs)
+                    result = execute()
                 except Exception as exc:
-                    if web and self.available:
+                    if web and replay is None and self.available:
                         rec.usage.add(invocation_id=span['record'].invocation_id, call_type='search', provider='tavily',
                             attempt=1, cache_hit=cache_hit, status='failed', started_at=start, ended_at=utc(),
                             duration_seconds=time.monotonic()-clock)
                     rec.retrieval(query, [], span['record'], web=web, cache_hit=cache_hit,
                                   error=error_record(exc, span['record'].invocation_id))
                     raise
-                if web and self.available:
+                if replay is not None:
+                    rec.usage.add(invocation_id=span['record'].invocation_id, call_type='search', provider='frozen_replay',
+                        attempt=1, cache_hit=True, status='succeeded', started_at=start, ended_at=utc(),
+                        duration_seconds=time.monotonic()-clock)
+                    cache_hit = True
+                elif web and self.available:
                     rec.usage.add(invocation_id=span['record'].invocation_id, call_type='search', provider='tavily',
                         attempt=1, cache_hit=cache_hit, status='succeeded', started_at=start, ended_at=utc(),
                         duration_seconds=time.monotonic()-clock)
                 span['output'] = json_value(result)
                 rec.retrieval(query, result, span['record'], web=web, cache_hit=cache_hit)
-                if web and not self.available:
+                if web and replay is None and not self.available:
                     span['fallback'] = 'live_search_disabled_or_credentials_missing'
             return result
         return wrapped
